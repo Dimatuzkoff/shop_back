@@ -1,5 +1,10 @@
 import express from 'express';
+import router from '../routs/index.js';
+
 const app = express();
+
+app.use(router);
+
 //midelware 1
 app.use(function (req, res, next) {
     next();
