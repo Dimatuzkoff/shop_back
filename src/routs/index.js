@@ -1,5 +1,5 @@
 import express from "express";
-// import Product from "../modeles/product.js";
+import Product from "../modeles/product.js";
 import mongoose from "mongoose";
 
 var router = express.Router();
@@ -8,10 +8,18 @@ router.get("/user/:id", (req, res) => {
     res.send(`ok + ${id}`);
 });
 
+router.get("/product", (req, res) => {
+    const id = req.params.id;
+    // res.send(`ok + ${id}`);
+    Product.find({}).then((data) => {
+        res.json(data);
+    })
+});
+
 router.post('/product', (req, res) => {
     console.log(req.body);
     const name = req.body.name
-    const Product = mongoose.model('Product', { name: String });
+    // const Product = mongoose.model('Product', { name: String });
 
     const product = new Product({ name });
     product.save()
@@ -27,6 +35,8 @@ router.post('/product', (req, res) => {
 
 
 })
+
+
 
 
 export default router;
