@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Dimatuzkoff/shop_back#readme",
   "type": "module",
   "dependencies": {
+    "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "mongoose": "^8.3.4"
   }

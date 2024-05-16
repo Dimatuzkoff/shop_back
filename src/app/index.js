@@ -1,15 +1,18 @@
 import express from 'express';
 import router from '../routs/index.js';
+import bodyParser from 'body-parser';
+import db from './db.js';
 import mongoose from 'mongoose';
-mongoose.connect('mongodb+srv://dimatuzkoff:5uPMUnhRxmzsA3cx@cluster0.ogdrcr6.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0');
+// const Cat = mongoose.model('Cat', { name: String });
 
-const Cat = mongoose.model('Cat', { name: String });
+// const kitty = new Cat({ name: 'Zildjian' });
+// kitty.save().then(() => console.log('meow'));
 
-const kitty = new Cat({ name: 'Zildjian' });
-kitty.save().then(() => console.log('meow'));
-
-
+db();
 const app = express();
+
+app.use(bodyParser.json()); // для парсинга application/json
+app.use(bodyParser.urlencoded({ extended: true })); // для парсинга application/x-www-form-urlencoded
 
 app.use(router);
 
