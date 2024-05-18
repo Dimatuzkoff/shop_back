@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import Product from "../modeles/product.js";
 import mongoose from "mongoose";
 
@@ -7,6 +8,8 @@ router.get("/user/:id", (req, res) => {
     const id = req.params.id;
     res.send(`ok + ${id}`);
 });
+
+router.use(cors());
 
 router.get("/product", (req, res) => {
     const id = req.params.id;
