@@ -35,10 +35,21 @@ router.post('/product', (req, res) => {
             res.status(500).send('Error saving product');
         });
 
-
-
 })
 
+
+router.delete("/product/:id", (req, res) => {
+    const productId = req.params.id;
+    Product.findByIdAndDelete(productId)
+        .then(() => {
+            console.log('Product deleted successfully');
+            res.send('Product deleted successfully');
+        })
+        .catch(error => {
+            console.error('Error deleting product:', error);
+            res.status(500).send('Error deleting product');
+        });
+});
 
 
 
