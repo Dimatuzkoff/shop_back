@@ -22,9 +22,10 @@ router.get("/product", (req, res) => {
 router.post('/product', (req, res) => {
     console.log(req.body);
     const name = req.body.name
+    const price = req.body.price
     // const Product = mongoose.model('Product', { name: String });
 
-    const product = new Product({ name });
+    const product = new Product({ name, price });
     product.save()
         .then(() => {
             console.log('Product saved successfully');
