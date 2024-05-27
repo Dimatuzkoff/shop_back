@@ -95,5 +95,26 @@ router.post('/register', async (req, res) => {
     }
 });
 
+// Роут для аутентификации (логина)
+router.post('/login', passport.authenticate('local-login'), (req, res) => {
+    res.json({ message: 'Login successful', user: req.user });
+});
+
+// Роут для выхода (логаута)
+router.get('/logout', (req, res) => {
+    req.logout();
+    res.json({ message: 'Logout successful' });
+});
+
+// Роут для проверки статуса аутентификации
+router.get('/status', (req, res) => {
+    if (req.isAuthenticated()) {
+        res.json({ authenticated: true, user: req.user });
+    } else {
+        res.json({ authenticated: false });
+    }
+});
+
+
 
 export default router;
