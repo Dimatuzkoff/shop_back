@@ -2,39 +2,56 @@ import express from 'express';
 import router from '../routs/index.js';
 import bodyParser from 'body-parser';
 import db from './db.js';
-import mongoose from 'mongoose';
-
 import session from 'express-session';
+import passportInit from './passport.js';
+import MongoStore from 'connect-mongo';
 
-
-
-db();
 const app = express();
 
-app.use(bodyParser.json()); // для парсинга application/json
-app.use(bodyParser.urlencoded({ extended: true })); // для парсинга application/x-www-form-urlencoded
+async function initializeApp() {
+    // Подключаемся к базе данных
+    const mongooseConnection = await db();
 
-app.use(session({
-    secret: 'your_secret_key',
-    resave: false,
-    saveUninitialized: false
-}));
+    // Настраиваем сессии с использованием MongoDB для хранения сессий
+    app.use(session({
+        secret: 'your_secret_key',
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({ mongoUrl: 'mongodb+srv://dimatuzkoff:5uPMUnhRxmzsA3cx@cluster0.ogdrcr6.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0' })
+    }));
 
-app.use(router);
+    // Инициализируем Passport.js после добавления express-session middleware
+    passportInit(app);
 
-//midelware 1
-app.use(function (req, res, next) {
-    next();
-    // res.send('Hello World')
-})
-//midelware 2
-app.use(function (req, res) {
-    res.send('2')
-})
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
 
-//midelware 3
-app.use(function (req, res) {
-    res.send('3 ')
-})
+    app.use(router);
 
-export default app
+    // Middleware для обработки запросов
+    // middleware 1
+    app.use((req, res, next) => {
+        next();
+    });
+
+    // middleware 2
+    app.use((req, res) => {
+        res.send('2');
+    });
+
+    // middleware 3
+    app.use((req, res) => {
+        res.send('3 ');
+    });
+
+    const PORT = process.env.PORT || 3000;
+
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+initializeApp();
+
+export default app;
+

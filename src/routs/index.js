@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
 import Product from "../modeles/product.js";
-import mongoose from "mongoose";
+import crypto from 'crypto';
+import User from '../modeles/user.js';
 
 var router = express.Router();
 router.get("/user/:id", (req, res) => {
@@ -52,6 +53,47 @@ router.delete("/product/:id", (req, res) => {
         });
 });
 
+router.get("/users", (req, res) => {
+    User.find({}).then((data) => {
+        res.json(data);
+    })
+});
+
+router.post('/register', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        // Проверяем, существует ли пользователь с таким же именем
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Username already exists.' });
+        }
+
+        // Генерируем соль
+        const salt = crypto.randomBytes(16).toString('hex');
+
+        // Хэшируем пароль
+        crypto.pbkdf2(password, salt, 310000, 32, 'sha256', async (err, hashedPassword) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error hashing password.' });
+            }
+
+            // Создаем нового пользователя
+            const newUser = new User({
+                username,
+                hashed_password: hashedPassword.toString('hex'),
+                salt
+            });
+
+            // Сохраняем пользователя в базе данных
+            await newUser.save();
+
+            res.status(201).json({ message: 'User registered successfully.' });
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error.' });
+    }
+});
 
 
 export default router;
