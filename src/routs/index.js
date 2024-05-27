@@ -3,7 +3,7 @@ import cors from "cors";
 import Product from "../modeles/product.js";
 import crypto from 'crypto';
 import User from '../modeles/user.js';
-
+import passport from "passport";
 var router = express.Router();
 router.get("/user/:id", (req, res) => {
     const id = req.params.id;
