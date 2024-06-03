@@ -24,7 +24,7 @@ const routeWrapper = (routeHandler) => {
 
 router.use(cors());
 
-router.get("/product", (req, res) => {
+router.get("/api/products", (req, res) => {
     const id = req.params.id;
     // res.send(`ok + ${id}`);
     Product.find({}).then((data) => {
@@ -32,7 +32,7 @@ router.get("/product", (req, res) => {
     })
 });
 
-router.post('/product', (req, res) => {
+router.post('/api/product', (req, res) => {
     console.log(req.body);
     const name = req.body.name
     const price = req.body.price
@@ -52,7 +52,7 @@ router.post('/product', (req, res) => {
 })
 
 
-router.delete("/product/:id", (req, res) => {
+router.delete("/api/product/:id", (req, res) => {
     const productId = req.params.id;
     Product.findByIdAndDelete(productId)
         .then(() => {
@@ -75,7 +75,7 @@ const getUsers = async (req, res) => {
     const users = await User.find({});
     res.json(users);
 };
-router.get("/users", routeWrapper(getUsers));
+router.get("/api/users", routeWrapper(getUsers));
 
 // роутрер гет юзер по айди
 
@@ -83,11 +83,11 @@ const getUserById = async (req, res) => {
     const id = req.params.id;
     res.send(`ok + ${id}`);
 }
-router.get("/user/:id", routeWrapper(getUserById));
+router.get("/api/user/:id", routeWrapper(getUserById));
 
 
 
-router.post('/register', async (req, res) => {
+router.post('/api/register', async (req, res) => {
     const { username, password } = req.body;
 
     try {
@@ -124,18 +124,18 @@ router.post('/register', async (req, res) => {
 });
 
 // Роут для аутентификации (логина)
-router.post('/login', passport.authenticate('local-login'), (req, res) => {
+router.post('/api/login', passport.authenticate('local-login'), (req, res) => {
     res.json({ ok: true, message: 'Login successful', user: req.user });
 });
 
 // Роут для выхода (логаута)
-router.get('/logout', (req, res) => {
+router.get('/api/logout', (req, res) => {
     req.logout();
     res.json({ ok: true, message: 'Logout successful' });
 });
 
 // Роут для проверки статуса аутентификации
-router.get('/status', (req, res) => {
+router.get('/api/status', (req, res) => {
     if (req.isAuthenticated()) {
         res.json({ authenticated: true, user: req.user });
     } else {
