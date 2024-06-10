@@ -125,7 +125,11 @@ router.post('/api/register', async (req, res) => {
 
 // Роут для аутентификации (логина)
 router.post('/api/login', passport.authenticate('local-login'), (req, res) => {
-    res.json({ ok: true, message: 'Login successful', user: req.user });
+    const user = Object.create(req.user);
+    user.hashed_password = undefined;
+    user.salt = undefined;
+    user.__v = undefined
+    res.json({ ok: true, message: 'Login successful', user });
 });
 
 // Роут для выхода (логаута)
