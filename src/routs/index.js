@@ -20,16 +20,14 @@ const routeWrapper = (routeHandler) => {
 };
 
 
-
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 router.use(cors());
 
-router.get("/api/products", (req, res) => {
-    const id = req.params.id;
-    // res.send(`ok + ${id}`);
-    Product.find({}).then((data) => {
-        res.json(data);
-    })
+router.get("/api/products", async (req, res) => {
+    await pause(3000);
+    const data = await Product.find({});
+    res.json(data);
 });
 
 router.post('/api/product', (req, res) => {
