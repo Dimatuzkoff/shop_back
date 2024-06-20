@@ -5,6 +5,8 @@ import crypto from 'crypto';
 import User from '../modeles/user.js';
 import passport from "passport";
 import { log } from "console";
+import 'dotenv/config'
+
 var router = express.Router();
 
 
@@ -104,9 +106,21 @@ router.post('/api/register', async (req, res) => {
                 return res.status(500).json({ message: 'Error hashing password.' });
             }
 
+            const role = () => {
+                const allAdmins = process.env.ADMINS.split(',').map(elem => elem.toLowerCase());
+                console.log(allAdmins);
+                if (allAdmins.includes(username.toLowerCase())) {
+                    return 'admin';
+                } else {
+                    return 'customer';
+                }
+            }
+
+
             // Создаем нового пользователя
             const newUser = new User({
                 username,
+                role: role(),
                 hashed_password: hashedPassword.toString('hex'),
                 salt
             });
