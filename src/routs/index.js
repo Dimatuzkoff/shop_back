@@ -34,11 +34,8 @@ router.get("/api/products", async (req, res) => {
 
 router.post('/api/product', (req, res) => {
     console.log(req.body);
-    const name = req.body.name
-    const price = req.body.price
-    // const Product = mongoose.model('Product', { name: String });
 
-    const product = new Product({ name, price });
+    const product = new Product(req.body);
     product.save()
         .then(() => {
             console.log('Product saved successfully');
