@@ -27,8 +27,9 @@ const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 router.use(cors());
 
 router.get("/api/products", async (req, res) => {
+    console.log('GET PRODUCTS!!!', req.query);
     await pause(3000);
-    const data = await Product.find({});
+    const data = await Product.find(req.query);
     res.json(data);
 });
 
