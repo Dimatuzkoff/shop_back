@@ -26,6 +26,13 @@ const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 router.use(cors());
 
+// router.all('*', (req, res, next) => {
+//     console.log(req.method, req.url, req.cookies['myCookie']);
+//     res.cookie('myCookie', 'cookieValue', { maxAge: 900000, httpOnly: true });
+
+//     next();
+// })
+
 router.get("/api/products", async (req, res) => {
     console.log('GET PRODUCTS!!!', req.query);
     await pause(3000);

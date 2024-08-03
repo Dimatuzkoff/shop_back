@@ -5,6 +5,7 @@ import db from './db.js';
 import session from 'express-session';
 import passportInit from './passport.js';
 import MongoStore from 'connect-mongo';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
@@ -23,6 +24,7 @@ async function initializeApp() {
     // Инициализируем Passport.js после добавления express-session middleware
     passportInit(app);
 
+    app.use(cookieParser());
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
 
