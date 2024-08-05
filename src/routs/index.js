@@ -31,29 +31,35 @@ const corsOptions = {
 
 router.use(cors(corsOptions));
 
+function generateToken() {
+    return crypto.randomBytes(64).toString('hex');
+}
+
+router.all('*', (req, res, next) => {
+    // console.log(req.method, req.url, req.cookies['myCookie']);
+    // res.cookie('myCookie', 'cookieValue', { maxAge: 900000, httpOnly: true });
+    console.log(req.cookies);
+    const anonimusToken = req.cookies['anonimusToken'];
+
+    if (!anonimusToken) {
+        res.cookie('anonimusToken', generateToken(), {
+            httpOnly: false,
+            secure: true, // Для разработки можно использовать false, но для продакшена установите true и используйте HTTPS
+            sameSite: 'None', // Требуется для кросс-доменных запросов
+        });
+       
+    }
+    next();
+})
+
 router.get("/api/products", async (req, res) => {
     console.log('GET PRODUCTS!!!', req.query);
-    console.log(req.cookies);
-    res.cookie('token', 'your-token-here', {
-        httpOnly: false,
-        secure: true, // Для разработки можно использовать false, но для продакшена установите true и используйте HTTPS
-        sameSite: 'None', // Требуется для кросс-доменных запросов
-    });
+   
     await pause(3000);
     const data = await Product.find(req.query);
     res.json(data);
 });
 
-
-
-router.use(cors());
-
-// router.all('*', (req, res, next) => {
-//     console.log(req.method, req.url, req.cookies['myCookie']);
-//     res.cookie('myCookie', 'cookieValue', { maxAge: 900000, httpOnly: true });
-
-//     next();
-// })
 
 router.get("/api/products", async (req, res) => {
     console.log('GET PRODUCTS!!!', req.query);
