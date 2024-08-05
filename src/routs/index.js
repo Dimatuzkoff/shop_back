@@ -24,6 +24,28 @@ const routeWrapper = (routeHandler) => {
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const corsOptions = {
+    origin: 'http://localhost:3000', // Домен вашего Nuxt приложения
+    credentials: true, // Разрешает передачу куки
+};
+
+router.use(cors(corsOptions));
+
+router.get("/api/products", async (req, res) => {
+    console.log('GET PRODUCTS!!!', req.query);
+    console.log(req.cookies);
+    res.cookie('token', 'your-token-here', {
+        httpOnly: true,
+        secure: false, // Для разработки можно использовать false, но для продакшена установите true и используйте HTTPS
+        sameSite: 'None', // Требуется для кросс-доменных запросов
+    });
+    await pause(3000);
+    const data = await Product.find(req.query);
+    res.json(data);
+});
+
+
+
 router.use(cors());
 
 // router.all('*', (req, res, next) => {
