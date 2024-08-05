@@ -35,8 +35,8 @@ router.get("/api/products", async (req, res) => {
     console.log('GET PRODUCTS!!!', req.query);
     console.log(req.cookies);
     res.cookie('token', 'your-token-here', {
-        httpOnly: true,
-        secure: false, // Для разработки можно использовать false, но для продакшена установите true и используйте HTTPS
+        httpOnly: false,
+        secure: true, // Для разработки можно использовать false, но для продакшена установите true и используйте HTTPS
         sameSite: 'None', // Требуется для кросс-доменных запросов
     });
     await pause(3000);
