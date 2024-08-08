@@ -47,19 +47,10 @@ router.all('*', (req, res, next) => {
             secure: true, // Для разработки можно использовать false, но для продакшена установите true и используйте HTTPS
             sameSite: 'None', // Требуется для кросс-доменных запросов
         });
-       
+
     }
     next();
 })
-
-router.get("/api/products", async (req, res) => {
-    console.log('GET PRODUCTS!!!', req.query);
-   
-    await pause(3000);
-    const data = await Product.find(req.query);
-    res.json(data);
-});
-
 
 router.get("/api/products", async (req, res) => {
     console.log('GET PRODUCTS!!!', req.query);
