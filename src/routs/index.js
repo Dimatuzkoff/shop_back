@@ -146,9 +146,6 @@ router.delete("/api/product/:id", (req, res) => {
         });
 });
 
-
-
-
 // роутер гет-юзерс
 
 const getUsers = async (req, res) => {
