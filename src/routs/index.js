@@ -6,9 +6,21 @@ import User from '../modeles/user.js';
 import passport from "passport";
 import { log } from "console";
 import 'dotenv/config'
+import { google } from "googleapis";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 var router = express.Router();
+const upload = multer({ dest: 'uploads/' });
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
 
+const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 const routeWrapper = (routeHandler) => {
     return async (req, res, next) => {
@@ -51,6 +63,51 @@ router.all('*', (req, res, next) => {
     }
     next();
 })
+
+router.get('/auth', (req, res) => {
+    const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/drive.file'],
+    });
+    res.redirect(authUrl);
+});
+
+// Route to handle OAuth2 callback
+router.get('/oauth2callback', async (req, res) => {
+    const { code } = req.query;
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+    res.redirect('/upload'); // Переадресуйте на вашу страницу загрузки файла после авторизации
+});
+
+// Route to handle file upload
+router.post('/api/upload', upload.single('file'), async (req, res) => {
+    if (!oauth2Client.credentials) {
+        return res.status(401).send('Unauthorized');
+    }
+    const drive = google.drive({ version: 'v3', auth: oauth2Client });
+    const filePath = path.join(process.cwd(), req.file.path);
+    console.log(filePath);
+    try {
+        const response = await drive.files.create({
+            requestBody: {
+                name: req.file.originalname,
+                mimeType: req.file.mimetype
+            },
+            media: {
+                mimeType: req.file.mimetype,
+                body: fs.createReadStream(filePath)
+            }
+        });
+        res.status(200).send(response.data);
+        // res.status(200).send('response.data');
+
+    } catch (error) {
+        res.status(500).send(error);
+    } finally {
+        fs.unlinkSync(filePath);
+    }
+});
 
 router.get("/api/products", async (req, res) => {
     console.log('GET PRODUCTS!!!', req.query);
