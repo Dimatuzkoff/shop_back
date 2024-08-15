@@ -11,6 +11,7 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from 'url';
+import { Dropbox } from 'dropbox';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
