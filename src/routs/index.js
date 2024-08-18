@@ -18,13 +18,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 var router = express.Router();
 const upload = multer({ dest: 'uploads/' });
-// const CLIENT_ID = process.env.CLIENT_ID;
-// const CLIENT_SECRET = process.env.CLIENT_SECRET;
-// const REDIRECT_URI = process.env.REDIRECT_URI;
 const CLIENT_DROPBOX_ID = process.env.CLIENT_DROPBOX_ID
 const CLIENT_DROPBOX_SECRET = process.env.CLIENT_DROPBOX_SECRET
 let ACCESS_TOKEN_DROPBOX = process.env.ACCESS_TOKEN_DROPBOX;
-// const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 const routeWrapper = (routeHandler) => {
     return async (req, res, next) => {
@@ -52,39 +48,10 @@ function generateToken() {
 }
 dotenv.config();
 
-// Функция для создания файла .env, если его нет
-function createEnvFileIfNotExists() {
-    const envFilePath = path.resolve(__dirname, '.env');
-    if (!fs.existsSync(envFilePath)) {
-        fs.writeFileSync(envFilePath, ''); // Создаем пустой файл .env
-    }
-}
-
-// Вызов функции для создания .env файла
-createEnvFileIfNotExists(); // Убедитесь, что файл существует до загрузки переменных
-
-// Теперь загружаем переменные окружения
-
-
-
-// Функция для записи переменной окружения в .env файл
-function updateEnvVar(key, value) {
-    const envFilePath = path.resolve(__dirname, '.env');
-    const envVars = fs.readFileSync(envFilePath, 'utf8').split('\n');
-    const newEnvVars = envVars.map(line =>
-        line.startsWith(`${key}=`) ? `${key}=${value}` : line
-    );
-    if (!newEnvVars.find(line => line.startsWith(`${key}=`))) {
-        newEnvVars.push(`${key}=${value}`);
-    }
-    fs.writeFileSync(envFilePath, newEnvVars.join('\n'));
-}
-
 // Функция для обновления ACCESS_TOKEN и сохранения в .env файл
 function updateAccessToken(newToken) {
     ACCESS_TOKEN_DROPBOX = newToken;
-    updateEnvVar('ACCESS_TOKEN_DROPBOX ', newToken);
-    console.log('Access token updated and saved to environment variables.');
+    process.env.ACCESS_TOKEN_DROPBOX = newToken;
 }
 
 // Инициализация Dropbox клиента
@@ -158,7 +125,7 @@ router.post('/upload', upload.single('file'), checkAuthorization, async (req, re
         const contents = fs.readFileSync(req.file.path);
         const response = await dbx.filesUpload({ path: '/' + req.file.originalname, contents });
 
-        res.send(`File uploaded successfully: ${response.result.path_lower}`);
+        res.send(response.result.path_lower);
 
         // Удаляем все файлы из папки uploads после успешной загрузки
         clearUploadsFolder();
@@ -190,50 +157,50 @@ router.all('*', (req, res, next) => {
     next();
 })
 
-router.get('/auth', (req, res) => {
-    const authUrl = oauth2Client.generateAuthUrl({
-        access_type: 'offline',
-        scope: ['https://www.googleapis.com/auth/drive.file'],
-    });
-    res.redirect(authUrl);
-});
+// router.get('/auth', (req, res) => {
+//     const authUrl = oauth2Client.generateAuthUrl({
+//         access_type: 'offline',
+//         scope: ['https://www.googleapis.com/auth/drive.file'],
+//     });
+//     res.redirect(authUrl);
+// });
 
-// Route to handle OAuth2 callback
-router.get('/oauth2callback', async (req, res) => {
-    const { code } = req.query;
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-    res.redirect('/upload'); // Переадресуйте на вашу страницу загрузки файла после авторизации
-});
+// // Route to handle OAuth2 callback
+// router.get('/oauth2callback', async (req, res) => {
+//     const { code } = req.query;
+//     const { tokens } = await oauth2Client.getToken(code);
+//     oauth2Client.setCredentials(tokens);
+//     res.redirect('/upload'); // Переадресуйте на вашу страницу загрузки файла после авторизации
+// });
 
-// Route to handle file upload
-router.post('/api/upload', upload.single('file'), async (req, res) => {
-    if (!oauth2Client.credentials) {
-        return res.status(401).send('Unauthorized');
-    }
-    const drive = google.drive({ version: 'v3', auth: oauth2Client });
-    const filePath = path.join(process.cwd(), req.file.path);
-    console.log(filePath);
-    try {
-        const response = await drive.files.create({
-            requestBody: {
-                name: req.file.originalname,
-                mimeType: req.file.mimetype
-            },
-            media: {
-                mimeType: req.file.mimetype,
-                body: fs.createReadStream(filePath)
-            }
-        });
-        res.status(200).send(response.data);
-        // res.status(200).send('response.data');
+// // Route to handle file upload
+// router.post('/api/upload', upload.single('file'), async (req, res) => {
+//     if (!oauth2Client.credentials) {
+//         return res.status(401).send('Unauthorized');
+//     }
+//     const drive = google.drive({ version: 'v3', auth: oauth2Client });
+//     const filePath = path.join(process.cwd(), req.file.path);
+//     console.log(filePath);
+//     try {
+//         const response = await drive.files.create({
+//             requestBody: {
+//                 name: req.file.originalname,
+//                 mimeType: req.file.mimetype
+//             },
+//             media: {
+//                 mimeType: req.file.mimetype,
+//                 body: fs.createReadStream(filePath)
+//             }
+//         });
+//         res.status(200).send(response.data);
+//         // res.status(200).send('response.data');
 
-    } catch (error) {
-        res.status(500).send(error);
-    } finally {
-        fs.unlinkSync(filePath);
-    }
-});
+//     } catch (error) {
+//         res.status(500).send(error);
+//     } finally {
+//         fs.unlinkSync(filePath);
+//     }
+// });
 
 router.get("/api/products", async (req, res) => {
     console.log('GET PRODUCTS!!!', req.query);
