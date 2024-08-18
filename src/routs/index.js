@@ -12,16 +12,19 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from 'url';
 import { Dropbox } from 'dropbox';
+import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 var router = express.Router();
 const upload = multer({ dest: 'uploads/' });
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI;
-
-const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+// const CLIENT_ID = process.env.CLIENT_ID;
+// const CLIENT_SECRET = process.env.CLIENT_SECRET;
+// const REDIRECT_URI = process.env.REDIRECT_URI;
+const CLIENT_DROPBOX_ID = process.env.CLIENT_DROPBOX_ID
+const CLIENT_DROPBOX_SECRET = process.env.CLIENT_DROPBOX_SECRET
+let ACCESS_TOKEN_DROPBOX = process.env.ACCESS_TOKEN_DROPBOX;
+// const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
 const routeWrapper = (routeHandler) => {
     return async (req, res, next) => {
@@ -47,6 +50,128 @@ router.use(cors(corsOptions));
 function generateToken() {
     return crypto.randomBytes(64).toString('hex');
 }
+dotenv.config();
+
+// Функция для создания файла .env, если его нет
+function createEnvFileIfNotExists() {
+    const envFilePath = path.resolve(__dirname, '.env');
+    if (!fs.existsSync(envFilePath)) {
+        fs.writeFileSync(envFilePath, ''); // Создаем пустой файл .env
+    }
+}
+
+// Вызов функции для создания .env файла
+createEnvFileIfNotExists(); // Убедитесь, что файл существует до загрузки переменных
+
+// Теперь загружаем переменные окружения
+
+
+
+// Функция для записи переменной окружения в .env файл
+function updateEnvVar(key, value) {
+    const envFilePath = path.resolve(__dirname, '.env');
+    const envVars = fs.readFileSync(envFilePath, 'utf8').split('\n');
+    const newEnvVars = envVars.map(line =>
+        line.startsWith(`${key}=`) ? `${key}=${value}` : line
+    );
+    if (!newEnvVars.find(line => line.startsWith(`${key}=`))) {
+        newEnvVars.push(`${key}=${value}`);
+    }
+    fs.writeFileSync(envFilePath, newEnvVars.join('\n'));
+}
+
+// Функция для обновления ACCESS_TOKEN и сохранения в .env файл
+function updateAccessToken(newToken) {
+    ACCESS_TOKEN_DROPBOX = newToken;
+    updateEnvVar('ACCESS_TOKEN_DROPBOX ', newToken);
+    console.log('Access token updated and saved to environment variables.');
+}
+
+// Инициализация Dropbox клиента
+function initDropbox() {
+    return new Dropbox({ accessToken: ACCESS_TOKEN_DROPBOX });
+}
+
+// Middleware для проверки авторизации
+function checkAuthorization(req, res, next) {
+    if (!ACCESS_TOKEN_DROPBOX) {
+        return res.status(401).send('User not authorized. Please <a href="/auth">authorize</a> the application first.');
+    }
+    next();
+}
+
+// Функция для очистки папки uploads
+function clearUploadsFolder() {
+    const directory = 'uploads/';
+
+    fs.readdir(directory, (err, files) => {
+        if (err) {
+            console.error('Error reading uploads directory:', err);
+            return;
+        }
+
+        for (const file of files) {
+            fs.unlink(path.join(directory, file), err => {
+                if (err) {
+                    console.error('Error deleting file:', err);
+                }
+            });
+        }
+    });
+}
+
+// Маршрут для инициализации OAuth 2.0 авторизации
+router.get('/auth', (req, res) => {
+    const authUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${CLIENT_DROPBOX_ID}&response_type=code&redirect_uri=http://localhost:3000/auth/callback`;
+    res.redirect(authUrl);
+});
+
+// Маршрут для обработки callback после авторизации
+router.get('/auth/callback', async (req, res) => {
+    const { code } = req.query;
+
+    try {
+        const response = await axios.post('https://api.dropbox.com/oauth2/token', null, {
+            params: {
+                code: code,
+                grant_type: 'authorization_code',
+                client_id: CLIENT_DROPBOX_ID,
+                client_secret: CLIENT_DROPBOX_SECRET,
+                redirect_uri: 'http://localhost:3000/auth/callback',
+            },
+        });
+
+        updateAccessToken(response.data.access_token); // Сохранение токена в переменную окружения и .env файл
+        console.log('Authorization successful:', response.data);
+        res.redirect('/');
+    } catch (error) {
+        console.error('Error during OAuth 2.0 flow:', error.response ? error.response.data : error.message);
+        res.status(500).send('Authorization failed. Please try again. <a href="/auth">Authorize</a>');
+    }
+});
+
+// Маршрут для загрузки файла
+router.post('/upload', upload.single('file'), checkAuthorization, async (req, res) => {
+    try {
+        const dbx = initDropbox();
+
+        const contents = fs.readFileSync(req.file.path);
+        const response = await dbx.filesUpload({ path: '/' + req.file.originalname, contents });
+
+        res.send(`File uploaded successfully: ${response.result.path_lower}`);
+
+        // Удаляем все файлы из папки uploads после успешной загрузки
+        clearUploadsFolder();
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        res.status(500).send('Error uploading file');
+    }
+});
+
+
+//загрузка картинок конец
+
+
 
 router.all('*', (req, res, next) => {
     // console.log(req.method, req.url, req.cookies['myCookie']);
