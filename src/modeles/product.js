@@ -5,6 +5,7 @@ const Product = mongoose.model('Product', {
   price: Number,
   description: String,
   image: [],
+  mainImagePointer: {type: Number, default: 0},
   category: String,
   subcategory: String
 });

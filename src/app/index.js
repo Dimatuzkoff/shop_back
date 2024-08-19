@@ -6,6 +6,15 @@ import session from 'express-session';
 import passportInit from './passport.js';
 import MongoStore from 'connect-mongo';
 import cookieParser from 'cookie-parser';
+import path from "path";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const rootDir = path.resolve(__dirname, '../../');
+
+console.log('Корневая директория:', rootDir);
 
 const app = express();
 
@@ -27,6 +36,8 @@ async function initializeApp() {
     app.use(cookieParser());
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
+
+    app.use(express.static(path.join(rootDir, 'uploads')));
 
     app.use(router);
 
