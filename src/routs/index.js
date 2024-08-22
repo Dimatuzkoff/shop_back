@@ -42,27 +42,37 @@ router.use(cors(corsOptions));
 // Конфигурация хранения файлов с Multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'uploads/'); // Папка, куда будут сохраняться файлы
+        cb(null, 'uploads/'); // Папка, куда будут сохраняться файлы
     },
     filename: function (req, file, cb) {
-      const ext = path.extname(file.originalname); // Получаем расширение файла
-      const randomName = uuidv4(); // Генерация случайного имени
-      cb(null, randomName + ext); // Устанавливаем имя файла с расширением
+        const ext = path.extname(file.originalname); // Получаем расширение файла
+        const randomName = uuidv4(); // Генерация случайного имени
+        cb(null, randomName + ext); // Устанавливаем имя файла с расширением
     }
-  });
-  
-  const upload = multer({ storage: storage });
-  
-  // Маршрут для загрузки одного файла
-  router.post('/upload-single', upload.single('file'), (req, res) => {
+});
+
+const upload = multer({ storage: storage });
+
+// Маршрут для загрузки одного файла
+router.post('/upload-single', upload.single('file'), (req, res) => {
     res.json({ filename: req.file.filename });
-  });
-  
-  // Маршрут для загрузки нескольких файлов
-  router.post('/upload-multiple', upload.array('files', 10), (req, res) => {
+});
+
+// Маршрут для загрузки нескольких файлов
+router.post('/upload-multiple', upload.array('files', 10), (req, res) => {
     const filenames = req.files.map(file => file.filename);
     res.json({ filenames });
-  });
+});
+
+router.get('/api/uploaded-files', async (req, res) => {
+    try {
+        const files = await fs.readdir('uploads/');
+        res.json({ data: files });
+    } catch (error) {
+        console.error('Error reading directory:', error);
+        res.status(500).json({ error: 'Failed to retrieve files' });
+    }
+})
 
 function generateToken() {
     return crypto.randomBytes(64).toString('hex');
