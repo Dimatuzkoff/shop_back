@@ -66,7 +66,8 @@ router.post('/upload-multiple', upload.array('files', 10), (req, res) => {
 
 router.get('/api/uploaded-files', async (req, res) => {
     try {
-        const files = await fs.readdir('uploads/');
+        const files = await fs.promises.readdir(__dirname + '/../../uploads/');
+
         res.json({ data: files });
     } catch (error) {
         console.error('Error reading directory:', error);
