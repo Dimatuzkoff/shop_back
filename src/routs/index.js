@@ -103,9 +103,27 @@ router.get("/api/products", async (req, res) => {
     res.json(data);
 });
 
-router.post('/api/product', (req, res) => {
-    console.log(req.body);
+router.get("/api/product/:id", async (req, res) => {
+    const id = req.params.id;
+    const data = await Product.findById(id);
+    res.json(data);
+});
 
+// router.put('/api/product', (req, res) => {
+//     const product = new Product(req.body);
+//     product.save()
+//         .then(() => {
+//             console.log('Product saved successfully');
+//             res.send('Product saved successfully');
+//         })
+//         .catch(error => {
+//             console.error('Error saving product:', error);
+//             res.status(500).send('Error saving product');
+//         });
+
+// })
+
+router.post('/api/product', (req, res) => {
     const product = new Product(req.body);
     product.save()
         .then(() => {
