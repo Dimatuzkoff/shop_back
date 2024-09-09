@@ -109,19 +109,16 @@ router.get("/api/product/:id", async (req, res) => {
     res.json(data);
 });
 
-// router.put('/api/product', (req, res) => {
-//     const product = new Product(req.body);
-//     product.save()
-//         .then(() => {
-//             console.log('Product saved successfully');
-//             res.send('Product saved successfully');
-//         })
-//         .catch(error => {
-//             console.error('Error saving product:', error);
-//             res.status(500).send('Error saving product');
-//         });
-
-// })
+router.put('/api/product', async (req, res) => {
+    try {
+        const id = req.body._id;
+        const product = await Product.findByIdAndUpdate(id, req.body, { new: true });
+        res.json(product);
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).send('Error updating product');
+    }   
+})
 
 router.post('/api/product', (req, res) => {
     const product = new Product(req.body);
