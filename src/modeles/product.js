@@ -56,12 +56,14 @@ const CharacteristicsSchema = new mongoose.Schema({
 // Оголошення основної схеми продукту
 const ProductSchema = new mongoose.Schema({
     name: String,
+    oldPrice: Number,
     price: Number,
     description: String,
     image: [String], // Массив рядків для зберігання URL зображень
     mainImagePointer: { type: Number, default: 0 },
     category: String,
     subcategory: String,
+    quantitiesInStore: { type: Number, default: 0 },
     characteristics: CharacteristicsSchema // Вставка схеми характеристик
 });
 
