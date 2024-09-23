@@ -59,7 +59,10 @@ const upload = multer({ storage: storage });
     try {
         // Пример запроса: получение списка городов
         const endpoint = 'getCities';
+        const searchTerm = '1550';
         const params = {
+            CityName: searchTerm,
+            Limit: 10,
             Language: 'ru'
         };
 
@@ -73,6 +76,31 @@ const upload = multer({ storage: storage });
         console.error('Ошибка:', error);
     }
 })();
+
+// Маршрут для поиска городов по частичной строке
+router.get('/api/search-cities', routeWrapper(async (req, res) => {
+    const searchTerm = req.query.q; // Строка поиска передается через query параметр 'q'
+    
+    if (!searchTerm) {
+        return res.status(400).json({ ok: false, message: 'Search term is required' });
+    }
+
+    const endpoint = 'getCities';
+    const params = {
+        CityName: searchTerm,
+        Limit: 10, // Ограничение на количество результатов
+        Language: 'ru' // Выбор языка
+    };
+
+    try {
+        const cities = await getNovaPoshtaData(endpoint, params);
+        res.json({ ok: true, cities });
+    } catch (error) {
+        console.error('Ошибка при поиске городов:', error);
+        res.status(500).json({ ok: false, message: 'Ошибка при поиске городов', error });
+    }
+}));
+
 
 // Маршрут для загрузки одного файла
 router.post('/upload-single', upload.single('file'), (req, res) => {
