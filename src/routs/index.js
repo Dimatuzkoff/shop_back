@@ -14,6 +14,7 @@ import { fileURLToPath } from 'url';
 import { Dropbox } from 'dropbox';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
+import { getNovaPoshtaData } from '../services/novaPoshtaCache.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -52,6 +53,26 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
+// Пример использования функции
+(async () => {
+    try {
+        // Пример запроса: получение списка городов
+        const endpoint = 'getCities';
+        const params = {
+            Language: 'ru'
+        };
+
+        const data = await getNovaPoshtaData(endpoint, params);
+        console.log('Полученные данные:', data);
+
+        // Повторный запрос для демонстрации кэширования
+        const cachedData = await getNovaPoshtaData(endpoint, params);
+        console.log('Полученные данные из кэша:', cachedData);
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+})();
 
 // Маршрут для загрузки одного файла
 router.post('/upload-single', upload.single('file'), (req, res) => {

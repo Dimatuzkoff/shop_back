@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Dimatuzkoff/shop_back#readme",
   "type": "module",
   "dependencies": {
+    "axios": "^1.7.7",
     "body-parser": "^1.20.2",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.6",
@@ -30,6 +31,7 @@
     "googleapis": "^140.0.1",
     "mongoose": "^8.3.4",
     "multer": "^1.4.5-lts.1",
+    "node-cache": "^5.1.2",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "uuid": "^10.0.0"
