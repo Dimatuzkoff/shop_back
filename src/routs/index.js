@@ -1,21 +1,20 @@
 import express from "express";
 import cors from "cors";
 import Product from "../modeles/product.js";
-import crypto from 'crypto';
-import User from '../modeles/user.js';
+import crypto from "crypto";
+import User from "../modeles/user.js";
 import passport from "passport";
-import { log } from "console";
-import 'dotenv/config'
-import { google } from "googleapis";
+import {log} from "console";
+import "dotenv/config";
+import {google} from "googleapis";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from 'url';
-import { Dropbox } from 'dropbox';
-import dotenv from 'dotenv';
-import { v4 as uuidv4 } from 'uuid';
-import { getNovaPoshtaData } from '../services/novaPoshtaCache.js';
-
+import {fileURLToPath} from "url";
+import {Dropbox} from "dropbox";
+import dotenv from "dotenv";
+import {v4 as uuidv4} from "uuid";
+import {getNovaPoshtaData} from "../services/novaPoshtaCache.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,13 +27,13 @@ const routeWrapper = (routeHandler) => {
             await routeHandler(req, res, next);
         } catch (error) {
             console.error(error);
-            res.status(500).send({ ok: false, message: "Server error", error });
+            res.status(500).send({ok: false, message: "Server error", error});
         }
     };
 };
 
 const corsOptions = {
-    origin: 'http://localhost:3000', // Домен вашего Nuxt приложения
+    origin: "http://localhost:3000", // Домен вашего Nuxt приложения
     credentials: true, // Разрешает передачу куки
 };
 
@@ -43,111 +42,133 @@ router.use(cors(corsOptions));
 // Конфигурация хранения файлов с Multer
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Папка, куда будут сохраняться файлы
+        cb(null, "uploads/"); // Папка, куда будут сохраняться файлы
     },
     filename: function (req, file, cb) {
         const ext = path.extname(file.originalname); // Получаем расширение файла
         const randomName = uuidv4(); // Генерация случайного имени
         cb(null, randomName + ext); // Устанавливаем имя файла с расширением
-    }
+    },
 });
 
-const upload = multer({ storage: storage });
-
-// Пример использования функции
-(async () => {
-    try {
-        // Пример запроса: получение списка городов
-        const endpoint = 'getCities';
-        const searchTerm = '1550';
-        const params = {
-            CityName: searchTerm,
-            Limit: 10,
-            Language: 'ru'
-        };
-
-        const data = await getNovaPoshtaData(endpoint, params);
-        console.log('Полученные данные:', data);
-
-        // Повторный запрос для демонстрации кэширования
-        const cachedData = await getNovaPoshtaData(endpoint, params);
-        console.log('Полученные данные из кэша:', cachedData);
-    } catch (error) {
-        console.error('Ошибка:', error);
-    }
-})();
+const upload = multer({storage: storage});
 
 // Маршрут для поиска городов по частичной строке
-router.get('/api/search-cities', routeWrapper(async (req, res) => {
-    const searchTerm = req.query.q; // Строка поиска передается через query параметр 'q'
-    
+router.get("/api/search-cities", async (req, res) => {
+    const searchTerm = req.query.q;
+
     if (!searchTerm) {
-        return res.status(400).json({ ok: false, message: 'Search term is required' });
+        return res.status(400).json({ok: false, message: "Строка поиска обязательна"});
     }
 
-    const endpoint = 'getCities';
+    const endpoint = "getCities";
     const params = {
-        CityName: searchTerm,
-        Limit: 10, // Ограничение на количество результатов
-        Language: 'ru' // Выбор языка
+        modelName: "AddressGeneral",
+        calledMethod: "searchSettlements",
+        methodProperties: {
+            CityName: searchTerm,
+            Limit: 10,
+            Language: "ru",
+        },
     };
 
     try {
-        const cities = await getNovaPoshtaData(endpoint, params);
-        res.json({ ok: true, cities });
+        const cities = await getNovaPoshtaData(params);
+        res.json({ok: true, cities});
     } catch (error) {
-        console.error('Ошибка при поиске городов:', error);
-        res.status(500).json({ ok: false, message: 'Ошибка при поиске городов', error });
+        console.error("Ошибка при поиске городов:", error);
+        res.status(500).json({
+            ok: false,
+            // message: "Ошибка при поиске городов",
+            error: error,
+        });
     }
-}));
+});
 
+// Маршрут для поиска отделений по городу
+router.get(
+    "/api/search-departments",
+    routeWrapper(async (req, res) => {
+        const CityName = req.query.CityName;
+
+        if (!CityName) {
+            return res.status(400).json({ok: false, message: "CityName is required"});
+        }
+
+        const params = {
+            modelName: "AddressGeneral",
+            calledMethod: "getWarehouses",
+            methodProperties: {
+                CityName,
+                Limit: 50,
+                Language: "ru",
+                FindByString: "",
+                // CityName: "Дніпро", // from MainDescription
+                Page: "1",
+            },
+        };
+
+        try {
+            console.log("Запрос на получение отделений с параметрами:", params); // Логируем параметры
+            const departments = await getNovaPoshtaData(params);
+
+            // Проверяем, возвращает ли API ожидаемую структуру
+            if (!departments || !Array.isArray(departments)) {
+                return res.status(404).json({ok: false, message: "Отделения не найдены"});
+            }
+
+            res.json({ok: true, departments});
+        } catch (error) {
+            console.error("Ошибка при поиске отделений:", error);
+            res.status(500).json({ok: false, message: "Ошибка при поиске отделений", error});
+        }
+    })
+);
 
 // Маршрут для загрузки одного файла
-router.post('/upload-single', upload.single('file'), (req, res) => {
-    res.json({ filename: req.file.filename });
+router.post("/upload-single", upload.single("file"), (req, res) => {
+    res.json({filename: req.file.filename});
 });
 
 // Маршрут для загрузки нескольких файлов
-router.post('/upload-multiple', upload.array('files', 10), (req, res) => {
-    const filenames = req.files.map(file => file.filename);
-    res.json({ filenames });
+router.post("/upload-multiple", upload.array("files", 10), (req, res) => {
+    const filenames = req.files.map((file) => file.filename);
+    res.json({filenames});
 });
 
-router.get('/api/uploaded-files', async (req, res) => {
+router.get("/api/uploaded-files", async (req, res) => {
     try {
-        const files = await fs.promises.readdir(__dirname + '/../../uploads/');
+        const files = await fs.promises.readdir(__dirname + "/../../uploads/");
 
-        res.json({ data: files });
+        res.json({data: files});
     } catch (error) {
-        console.error('Error reading directory:', error);
-        res.status(500).json({ error: 'Failed to retrieve files' });
+        console.error("Error reading directory:", error);
+        res.status(500).json({error: "Failed to retrieve files"});
     }
-})
+});
 
 function generateToken() {
-    return crypto.randomBytes(64).toString('hex');
+    return crypto.randomBytes(64).toString("hex");
 }
 
-
-router.all('*', (req, res, next) => {
+router.all("*", (req, res, next) => {
     // console.log(req.method, req.url, req.cookies['myCookie']);
     // res.cookie('myCookie', 'cookieValue', { maxAge: 900000, httpOnly: true });
     console.log(req.cookies);
-    const anonimusToken = req.cookies['anonimusToken'];
+    const anonimusToken = req.cookies["anonimusToken"];
 
     if (!anonimusToken) {
-        res.cookie('anonimusToken', generateToken(), {
+        res.cookie("anonimusToken", generateToken(), {
             httpOnly: false,
             secure: true, // Для разработки можно использовать false, но для продакшена установите true и используйте HTTPS
-            sameSite: 'None', // Требуется для кросс-доменных запросов
+            sameSite: "None", // Требуется для кросс-доменных запросов
         });
-
     }
     next();
-})
+});
 
 router.get("/api/products", async (req, res) => {
-    console.log('GET PRODUCTS!!!', req.query);
+    console.log("GET PRODUCTS!!!", req.query);
     const data = await Product.find(req.query);
     res.json(data);
 });
@@ -158,49 +179,48 @@ router.get("/api/product/:id", async (req, res) => {
     res.json(data);
 });
 
-router.put('/api/product', async (req, res) => {
+router.put("/api/product", async (req, res) => {
     try {
         const id = req.body._id;
-        const product = await Product.findByIdAndUpdate(id, req.body, { new: true });
+        const product = await Product.findByIdAndUpdate(id, req.body, {new: true});
         res.json(product);
     } catch (error) {
-        console.error('Error updating product:', error);
-        res.status(500).send('Error updating product');
-    }   
-})
+        console.error("Error updating product:", error);
+        res.status(500).send("Error updating product");
+    }
+});
 
-router.post('/api/product', (req, res) => {
+router.post("/api/product", (req, res) => {
     const product = new Product(req.body);
-    product.save()
+    product
+        .save()
         .then(() => {
-            console.log('Product saved successfully');
-            res.send('Product saved successfully');
+            console.log("Product saved successfully");
+            res.send("Product saved successfully");
         })
-        .catch(error => {
-            console.error('Error saving product:', error);
-            res.status(500).send('Error saving product');
+        .catch((error) => {
+            console.error("Error saving product:", error);
+            res.status(500).send("Error saving product");
         });
-
-})
-
+});
 
 router.delete("/api/product/:id", (req, res) => {
     const productId = req.params.id;
     Product.findByIdAndDelete(productId)
         .then(() => {
-            console.log('Product deleted successfully');
-            res.send('Product deleted successfully');
+            console.log("Product deleted successfully");
+            res.send("Product deleted successfully");
         })
-        .catch(error => {
-            console.error('Error deleting product:', error);
-            res.status(500).send('Error deleting product');
+        .catch((error) => {
+            console.error("Error deleting product:", error);
+            res.status(500).send("Error deleting product");
         });
 });
 
 // роутер гет-юзерс
 
 const getUsers = async (req, res) => {
-    console.log('GET USERS!!!');
+    console.log("GET USERS!!!");
     const users = await User.find({});
     res.json(users);
 };
@@ -211,83 +231,78 @@ router.get("/api/users", routeWrapper(getUsers));
 const getUserById = async (req, res) => {
     const id = req.params.id;
     res.send(`ok + ${id}`);
-}
+};
 router.get("/api/user/:id", routeWrapper(getUserById));
 
-
-
-router.post('/api/register', async (req, res) => {
-    const { username, password } = req.body;
+router.post("/api/register", async (req, res) => {
+    const {username, password} = req.body;
 
     try {
         // Проверяем, существует ли пользователь с таким же именем
-        const existingUser = await User.findOne({ username });
+        const existingUser = await User.findOne({username});
         if (existingUser) {
-            return res.status(400).json({ message: 'Username already exists.' });
+            return res.status(400).json({message: "Username already exists."});
         }
 
         // Генерируем соль
-        const salt = crypto.randomBytes(16).toString('hex');
+        const salt = crypto.randomBytes(16).toString("hex");
 
         // Хэшируем пароль
-        crypto.pbkdf2(password, salt, 310000, 32, 'sha256', async (err, hashedPassword) => {
+        crypto.pbkdf2(password, salt, 310000, 32, "sha256", async (err, hashedPassword) => {
             if (err) {
-                return res.status(500).json({ message: 'Error hashing password.' });
+                return res.status(500).json({message: "Error hashing password."});
             }
 
             const role = () => {
-                const allAdmins = process.env.ADMINS.split(',').map(elem => elem.toLowerCase());
+                const allAdmins = process.env.ADMINS.split(",").map((elem) => elem.toLowerCase());
                 console.log(allAdmins);
                 if (allAdmins.includes(username.toLowerCase())) {
-                    return 'admin';
+                    return "admin";
                 } else {
-                    return 'customer';
+                    return "customer";
                 }
-            }
-
+            };
 
             // Создаем нового пользователя
             const newUser = new User({
                 username,
                 role: role(),
-                hashed_password: hashedPassword.toString('hex'),
-                salt
+                hashed_password: hashedPassword.toString("hex"),
+                salt,
             });
 
             // Сохраняем пользователя в базе данных
             await newUser.save();
 
-            res.status(201).json({ ok: true, message: 'User registered successfully.' });
+            res.status(201).json({ok: true, message: "User registered successfully."});
         });
     } catch (err) {
-        res.status(500).json({ message: 'Server error.' });
+        res.status(500).json({message: "Server error."});
     }
 });
 
 // Роут для аутентификации (логина)
-router.post('/api/login', passport.authenticate('local-login'), (req, res) => {
+router.post("/api/login", passport.authenticate("local-login"), (req, res) => {
     const user = Object.create(req.user);
     user.hashed_password = undefined;
     user.salt = undefined;
-    user.__v = undefined
-    res.json({ ok: true, message: 'Login successful', user });
+    user.__v = undefined;
+    res.json({ok: true, message: "Login successful", user});
 });
 
 // Роут для выхода (логаута)
-router.get('/api/logout', (req, res) => {
+router.get("/api/logout", (req, res) => {
     req.logout();
-    res.json({ ok: true, message: 'Logout successful' });
+    res.json({ok: true, message: "Logout successful"});
 });
 
 // Роут для проверки статуса аутентификации
-router.get('/api/status', (req, res) => {
+router.get("/api/status", (req, res) => {
     if (req.isAuthenticated()) {
-        res.json({ authenticated: true, user: req.user });
+        res.json({authenticated: true, user: req.user});
     } else {
-        res.json({ authenticated: false });
+        res.json({authenticated: false});
     }
 });
-
-
 
 export default router;

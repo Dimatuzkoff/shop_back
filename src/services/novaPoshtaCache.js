@@ -1,6 +1,6 @@
 import axios from 'axios';
 import NodeCache from 'node-cache';
-import 'dotenv/config'
+import 'dotenv/config';
 
 // Инициализация кэша с временем жизни (TTL) 1 час (3600 секунд)
 const cache = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
@@ -11,11 +11,10 @@ const cache = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
  * @param {object} params - Параметры запроса.
  * @returns {Promise<object>} - Возвращает данные из кэша или API.
  */
-export async function getNovaPoshtaData(endpoint, params) {
-    // Создаем уникальный ключ для кэша на основе endpoint и параметров
-    const cacheKey = `${endpoint}:${JSON.stringify(params)}`;
+export async function getNovaPoshtaData(params) {
+    const cacheKey = `${params.calledMethod}:${JSON.stringify(params)}`;
 
-    // Проверяем, есть ли данные в кэше
+    console.log(`Ключ кэша: ${cacheKey}`); // Логируем ключ кэша
     const cachedData = cache.get(cacheKey);
     if (cachedData) {
         console.log('Данные получены из кэша');
@@ -23,43 +22,23 @@ export async function getNovaPoshtaData(endpoint, params) {
     }
 
     try {
-        // Выполняем запрос к API Новой Почты
+        console.log('Отправка запроса к API с параметрами:', params); // Логируем параметры запроса
         const response = await axios.post('https://api.novaposhta.ua/v2.0/json/', {
-            apiKey: process.env.NOVA_POSHTA_API_KEY, // Замените на ваш API ключ
-            modelName: 'Address',
-            calledMethod: endpoint,
-            methodProperties: params
+            apiKey: process.env.NOVA_POSHTA_API_KEY,
+            ...params
         });
 
-        const data = response.data;
-
-        // Сохраняем данные в кэш
-        cache.set(cacheKey, data);
-
-        console.log('Данные получены с API и сохранены в кэш');
-        return data;
+        if (response.data.success) { // Добавляем проверку на успешный статус
+            const data = response.data.data;
+            cache.set(cacheKey, data);
+            console.log('Данные получены с API и сохранены в кэш');
+            return data;
+        } else {
+            console.error('Ошибка API Новой Почты:', response.data.errors);
+            throw new Error(response.data.errors.join(', '));
+        }
     } catch (error) {
-        console.error('Ошибка при запросе к API Новой Почты:', error);
-        throw error;
+        console.error('Ошибка при запросе к API Новой Почты:', error.message);
+        throw new Error('Не удалось получить данные с API Новой Почты');
     }
 }
-
-// Пример использования функции
-// (async () => {
-//     try {
-//         // Пример запроса: получение списка городов
-//         const endpoint = 'getCities';
-//         const params = {
-//             Language: 'ru'
-//         };
-
-//         const data = await getNovaPoshtaData(endpoint, params);
-//         console.log('Полученные данные:', data);
-
-//         // Повторный запрос для демонстрации кэширования
-//         const cachedData = await getNovaPoshtaData(endpoint, params);
-//         console.log('Полученные данные из кэша:', cachedData);
-//     } catch (error) {
-//         console.error('Ошибка:', error);
-//     }
-// })();
