@@ -129,9 +129,9 @@ router.get("/api/search-cities", async (req, res) => {
 router.get(
     "/api/search-departments",
     routeWrapper(async (req, res) => {
-        const Ref = req.query.CityRef;
+        const CityRef = req.query.CityRef;
 
-        if (!Ref) {
+        if (!CityRef) {
             return res.status(400).json({ ok: false, message: "CityRef is required" });
         }
 
@@ -139,7 +139,7 @@ router.get(
             modelName: "AddressGeneral",
             calledMethod: "getWarehouses",
             methodProperties: {
-                Ref,
+                CityRef,
                 Limit: 50,
                 Language: "ru",
                 // FindByString: "",
