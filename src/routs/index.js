@@ -4,17 +4,17 @@ import Product from "../modeles/product.js";
 import crypto from "crypto";
 import User from "../modeles/user.js";
 import passport from "passport";
-import {log} from "console";
+import { log } from "console";
 import "dotenv/config";
-import {google} from "googleapis";
+import { google } from "googleapis";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
-import {fileURLToPath} from "url";
-import {Dropbox} from "dropbox";
+import { fileURLToPath } from "url";
+import { Dropbox } from "dropbox";
 import dotenv from "dotenv";
-import {v4 as uuidv4} from "uuid";
-import {getNovaPoshtaData} from "../services/novaPoshtaCache.js";
+import { v4 as uuidv4 } from "uuid";
+import { getNovaPoshtaData } from "../services/novaPoshtaCache.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,7 +27,7 @@ const routeWrapper = (routeHandler) => {
             await routeHandler(req, res, next);
         } catch (error) {
             console.error(error);
-            res.status(500).send({ok: false, message: "Server error", error});
+            res.status(500).send({ ok: false, message: "Server error", error });
         }
     };
 };
@@ -51,14 +51,14 @@ const storage = multer.diskStorage({
     },
 });
 
-const upload = multer({storage: storage});
+const upload = multer({ storage: storage });
 
 // Маршрут для поиска городов по частичной строке
 router.get("/api/search-cities", async (req, res) => {
     const searchTerm = req.query.q;
 
     if (!searchTerm) {
-        return res.status(400).json({ok: false, message: "Строка поиска обязательна"});
+        return res.status(400).json({ ok: false, message: "Строка поиска обязательна" });
     }
 
     const endpoint = "getCities";
@@ -74,7 +74,7 @@ router.get("/api/search-cities", async (req, res) => {
 
     try {
         const cities = await getNovaPoshtaData(params);
-        res.json({ok: true, cities});
+        res.json({ ok: true, cities });
     } catch (error) {
         console.error("Ошибка при поиске городов:", error);
         res.status(500).json({
@@ -86,23 +86,63 @@ router.get("/api/search-cities", async (req, res) => {
 });
 
 // Маршрут для поиска отделений по городу
+// router.get(
+//     "/api/search-departments",
+//     routeWrapper(async (req, res) => {
+//         const CityName = req.query.CityName;
+
+//         if (!CityName) {
+//             return res.status(400).json({ok: false, message: "CityName is required"});
+//         }
+
+//         const params = {
+//             modelName: "AddressGeneral",
+//             calledMethod: "getWarehouses",
+//             methodProperties: {
+//                 CityName,
+//                 Limit: 50,
+//                 Language: "ru",
+//                 FindByString: "",
+//                 // CityName: "Дніпро", // from MainDescription
+//                 Page: "1",
+//             },
+//         };
+
+//         try {
+//             console.log("Запрос на получение отделений с параметрами:", params); // Логируем параметры
+//             const departments = await getNovaPoshtaData(params);
+
+//             // Проверяем, возвращает ли API ожидаемую структуру
+//             if (!departments || !Array.isArray(departments)) {
+//                 return res.status(404).json({ok: false, message: "Отделения не найдены"});
+//             }
+
+//             res.json({ok: true, departments});
+//         } catch (error) {
+//             console.error("Ошибка при поиске отделений:", error);
+//             res.status(500).json({ok: false, message: "Ошибка при поиске отделений", error});
+//         }
+//     })
+// );
+
+
 router.get(
     "/api/search-departments",
     routeWrapper(async (req, res) => {
-        const CityName = req.query.CityName;
+        const Ref = req.query.CityRef;
 
-        if (!CityName) {
-            return res.status(400).json({ok: false, message: "CityName is required"});
+        if (!Ref) {
+            return res.status(400).json({ ok: false, message: "CityRef is required" });
         }
 
         const params = {
             modelName: "AddressGeneral",
             calledMethod: "getWarehouses",
             methodProperties: {
-                CityName,
+                Ref,
                 Limit: 50,
                 Language: "ru",
-                FindByString: "",
+                // FindByString: "",
                 // CityName: "Дніпро", // from MainDescription
                 Page: "1",
             },
@@ -114,36 +154,37 @@ router.get(
 
             // Проверяем, возвращает ли API ожидаемую структуру
             if (!departments || !Array.isArray(departments)) {
-                return res.status(404).json({ok: false, message: "Отделения не найдены"});
+                return res.status(404).json({ ok: false, message: "Отделения не найдены" });
             }
 
-            res.json({ok: true, departments});
+            res.json({ ok: true, departments });
         } catch (error) {
             console.error("Ошибка при поиске отделений:", error);
-            res.status(500).json({ok: false, message: "Ошибка при поиске отделений", error});
+            res.status(500).json({ ok: false, message: "Ошибка при поиске отделений", error });
         }
     })
 );
 
+
 // Маршрут для загрузки одного файла
 router.post("/upload-single", upload.single("file"), (req, res) => {
-    res.json({filename: req.file.filename});
+    res.json({ filename: req.file.filename });
 });
 
 // Маршрут для загрузки нескольких файлов
 router.post("/upload-multiple", upload.array("files", 10), (req, res) => {
     const filenames = req.files.map((file) => file.filename);
-    res.json({filenames});
+    res.json({ filenames });
 });
 
 router.get("/api/uploaded-files", async (req, res) => {
     try {
         const files = await fs.promises.readdir(__dirname + "/../../uploads/");
 
-        res.json({data: files});
+        res.json({ data: files });
     } catch (error) {
         console.error("Error reading directory:", error);
-        res.status(500).json({error: "Failed to retrieve files"});
+        res.status(500).json({ error: "Failed to retrieve files" });
     }
 });
 
@@ -182,7 +223,7 @@ router.get("/api/product/:id", async (req, res) => {
 router.put("/api/product", async (req, res) => {
     try {
         const id = req.body._id;
-        const product = await Product.findByIdAndUpdate(id, req.body, {new: true});
+        const product = await Product.findByIdAndUpdate(id, req.body, { new: true });
         res.json(product);
     } catch (error) {
         console.error("Error updating product:", error);
@@ -235,13 +276,13 @@ const getUserById = async (req, res) => {
 router.get("/api/user/:id", routeWrapper(getUserById));
 
 router.post("/api/register", async (req, res) => {
-    const {username, password} = req.body;
+    const { username, password } = req.body;
 
     try {
         // Проверяем, существует ли пользователь с таким же именем
-        const existingUser = await User.findOne({username});
+        const existingUser = await User.findOne({ username });
         if (existingUser) {
-            return res.status(400).json({message: "Username already exists."});
+            return res.status(400).json({ message: "Username already exists." });
         }
 
         // Генерируем соль
@@ -250,7 +291,7 @@ router.post("/api/register", async (req, res) => {
         // Хэшируем пароль
         crypto.pbkdf2(password, salt, 310000, 32, "sha256", async (err, hashedPassword) => {
             if (err) {
-                return res.status(500).json({message: "Error hashing password."});
+                return res.status(500).json({ message: "Error hashing password." });
             }
 
             const role = () => {
@@ -274,10 +315,10 @@ router.post("/api/register", async (req, res) => {
             // Сохраняем пользователя в базе данных
             await newUser.save();
 
-            res.status(201).json({ok: true, message: "User registered successfully."});
+            res.status(201).json({ ok: true, message: "User registered successfully." });
         });
     } catch (err) {
-        res.status(500).json({message: "Server error."});
+        res.status(500).json({ message: "Server error." });
     }
 });
 
@@ -287,21 +328,21 @@ router.post("/api/login", passport.authenticate("local-login"), (req, res) => {
     user.hashed_password = undefined;
     user.salt = undefined;
     user.__v = undefined;
-    res.json({ok: true, message: "Login successful", user});
+    res.json({ ok: true, message: "Login successful", user });
 });
 
 // Роут для выхода (логаута)
 router.get("/api/logout", (req, res) => {
     req.logout();
-    res.json({ok: true, message: "Logout successful"});
+    res.json({ ok: true, message: "Logout successful" });
 });
 
 // Роут для проверки статуса аутентификации
 router.get("/api/status", (req, res) => {
     if (req.isAuthenticated()) {
-        res.json({authenticated: true, user: req.user});
+        res.json({ authenticated: true, user: req.user });
     } else {
-        res.json({authenticated: false});
+        res.json({ authenticated: false });
     }
 });
 
