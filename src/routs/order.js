@@ -13,17 +13,18 @@ import { opendirSync } from "fs";
 
 const router = express.Router();
 
-router.post("/api/order", (req, res) => {
+router.post("/order", (req, res) => {
   const product = new Order(req.body);
   product
       .save()
       .then(() => {
           console.log("Order saved successfully");
-          res.send("Order saved successfully");
+          console.log(req.body);
+          res.json({ ok: true, message: "Order saved successfully" });
       })
       .catch((error) => {
-          console.error("Error saving product:", error);
-          res.status(500).send("Error saving product");
+          console.error("Error saving order:", error);
+          res.status(500).send("Error saving order");
       });
 });
 

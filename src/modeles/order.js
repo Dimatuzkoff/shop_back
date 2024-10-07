@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const OrderSchema = new mongoose.Schema({
 
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    // user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     guestContact: {
         name: String,
         email: String,
@@ -16,13 +16,8 @@ const OrderSchema = new mongoose.Schema({
     ],
     totalPrice: Number,
     delivery: {
-        address: {
-            city: String,
-            street: String,
-            house: String
-        },
-        department: Number,
-
+        city: String,
+        department: String,
     },
 
 });
