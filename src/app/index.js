@@ -1,5 +1,5 @@
 import express from 'express';
-import router from '../routs/index.js';
+// import router from '../routs/rest.js';
 import bodyParser from 'body-parser';
 import db from './db.js';
 import session from 'express-session';
@@ -8,6 +8,7 @@ import MongoStore from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import path from "path";
 import { fileURLToPath } from 'url';
+import routs from '../routs/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,7 +40,9 @@ async function initializeApp() {
 
     app.use(express.static(path.join(rootDir, 'uploads')));
 
-    app.use(router);
+    // app.use(router);
+
+    routs(app);
 
     // Middleware для обработки запросов
     // middleware 1
