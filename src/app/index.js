@@ -52,7 +52,7 @@ async function initializeApp() {
 
     // middleware 2
     app.use((req, res) => {
-        res.send('2');
+        res.send('Бла, мимо....');
     });
 
     // middleware 3
