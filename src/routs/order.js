@@ -14,18 +14,23 @@ import { opendirSync } from "fs";
 const router = express.Router();
 
 router.post("/order", (req, res) => {
-  const product = new Order(req.body);
-  product
-      .save()
-      .then(() => {
-          console.log("Order saved successfully");
-          console.log(req.body);
-          res.json({ ok: true, message: "Order saved successfully" });
-      })
-      .catch((error) => {
-          console.error("Error saving order:", error);
-          res.status(500).send("Error saving order");
-      });
+    const product = new Order(req.body);
+    product
+        .save()
+        .then(() => {
+            console.log("Order saved successfully");
+            console.log(req.body);
+            res.json({ ok: true, message: "Order saved successfully" });
+        })
+        .catch((error) => {
+            console.error("Error saving order:", error);
+            res.status(500).send("Error saving order");
+        });
+});
+
+router.get("/orders", async (req, res) => {
+    const data = await Order.find(req.query);
+    res.json(data);
 });
 
 export default router;
