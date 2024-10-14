@@ -10,11 +10,13 @@ import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import { getNovaPoshtaData } from "../services/novaPoshtaCache.js";
 import { opendirSync } from "fs";
+import { getNextSequenceValue } from "../utils/db.js";
 
 const router = express.Router();
 
-router.post("/order", (req, res) => {
-    const product = new Order(req.body);
+router.post("/order", async (req, res) => {
+    const number = await getNextSequenceValue("orders");
+    const product = new Order({ ...req.body, number });
     product
         .save()
         .then(() => {

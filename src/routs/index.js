@@ -4,6 +4,7 @@ import user from "./user.js";
 
 
 
+
 // Подключение маршрутов
 export default function routs(app) {
     //   app.use("/api", authRoutes);
@@ -15,4 +16,8 @@ export default function routs(app) {
     app.use("/api", order);
     app.use("/api", user);
 }
+
+
+
+
 
