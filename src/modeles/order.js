@@ -7,6 +7,7 @@ const OrderSchema = new mongoose.Schema({
     guestContact: {
         username: String,
         name: String,
+        surname: String,
         email: String,
         phone: String
     },
