@@ -35,5 +35,30 @@ router.get("/orders", async (req, res) => {
     res.json(data);
 });
 
+router.get("/order/:id", async (req, res) => {
+    try {
+        const data = await Order.findById(req.params.id);
+        if (!data) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+
+router.get("/order/number/:number", async (req, res) => {
+    try {
+        const data = await Order.findOne({ number: req.params.number });
+        if (!data) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+
+
 export default router;
 
