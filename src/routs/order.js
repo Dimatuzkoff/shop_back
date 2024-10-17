@@ -59,6 +59,19 @@ router.get("/order/number/:number", async (req, res) => {
     }
 });
 
+router.get("/order/phone/:phone", async (req, res) => {
+    try {
+        const data = await Order.findOne({ phone: req.params.phone });
+        if (!data) {
+            return res.status(404).json({ message: "Customer not found" });
+        }
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+});
+
+
 
 export default router;
 

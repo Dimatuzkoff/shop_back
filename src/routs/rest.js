@@ -229,13 +229,13 @@ const getUserById = async (req, res) => {
 router.get("/user/:id", routeWrapper(getUserById));
 
 router.post("/register", async (req, res) => {
-    const { username, password } = req.body;
+    const { phone, password } = req.body;
 
     try {
         // Проверяем, существует ли пользователь с таким же именем
-        const existingUser = await User.findOne({ username });
+        const existingUser = await User.findOne({ phone });
         if (existingUser) {
-            return res.status(400).json({ message: "Username already exists." });
+            return res.status(400).json({ message: "Phone already exists." });
         }
 
         // Генерируем соль
@@ -250,7 +250,7 @@ router.post("/register", async (req, res) => {
             const role = () => {
                 const allAdmins = process.env.ADMINS.split(",").map((elem) => elem.toLowerCase());
                 console.log(allAdmins);
-                if (allAdmins.includes(username.toLowerCase())) {
+                if (allAdmins.includes(phone)) {
                     return "admin";
                 } else {
                     return "customer";
@@ -259,7 +259,7 @@ router.post("/register", async (req, res) => {
 
             // Создаем нового пользователя
             const newUser = new User({
-                username,
+                phone,
                 role: role(),
                 hashed_password: hashedPassword.toString("hex"),
                 salt,
@@ -277,6 +277,7 @@ router.post("/register", async (req, res) => {
 
 // Роут для аутентификации (логина)
 router.post("/login", passport.authenticate("local-login"), (req, res) => {
+    console.log('Мы тутуа');
     const user = Object.create(req.user);
     user.hashed_password = undefined;
     user.salt = undefined;
