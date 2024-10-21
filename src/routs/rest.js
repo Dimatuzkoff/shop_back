@@ -1,5 +1,4 @@
 import express from "express";
-// import cors from "cors";
 import Product from "../modeles/product.js";
 import crypto from "crypto";
 import User from "../modeles/user.js";
@@ -27,13 +26,6 @@ const routeWrapper = (routeHandler) => {
         }
     };
 };
-
-// const corsOptions = {
-//     origin: "http://localhost:3000", // Домен вашего Nuxt приложения
-//     credentials: true, // Разрешает передачу куки
-// };
-
-// router.use(cors(corsOptions));
 
 // Конфигурация хранения файлов с Multer
 const storage = multer.diskStorage({

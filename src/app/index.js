@@ -1,5 +1,4 @@
 import express from 'express';
-// import router from '../routs/rest.js';
 import bodyParser from 'body-parser';
 import db from './db.js';
 import session from 'express-session';
@@ -44,21 +43,18 @@ async function initializeApp() {
 
     routs(app);
 
-    // Middleware для обработки запросов
+    // Middleware пример пустого мидлвара
     // middleware 1
     app.use((req, res, next) => {
         next();
     });
 
-    // middleware 2
+    // middleware последний (когда не найденный роут)
     app.use((req, res) => {
         res.send('Бла, мимо....');
     });
 
-    // middleware 3
-    app.use((req, res) => {
-        res.send('3 ');
-    });
+
 }
 
 initializeApp();
