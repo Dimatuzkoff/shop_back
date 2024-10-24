@@ -36,22 +36,18 @@ async function initializeApp() {
     app.use(cookieParser());
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
-
     app.use(express.static(path.join(rootDir, 'uploads')));
-
-    // app.use(router);
 
     routs(app);
 
     // Middleware пример пустого мидлвара
-    // middleware 1
     app.use((req, res, next) => {
         next();
     });
 
     // middleware последний (когда не найденный роут)
     app.use((req, res) => {
-        res.send('Бла, мимо....');
+        res.statusCode(404).send('Бла, мимо....');
     });
 
 

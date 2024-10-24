@@ -9,24 +9,87 @@ const generateToken = () => {
     return crypto.randomBytes(64).toString("hex");
 };
 
-// Регистрация
+
+
 router.post("/register", async (req, res) => {
-    // Логика регистрации
+    const { phone, password } = req.body;
+
+    try {
+        // Проверяем, существует ли пользователь с таким же именем
+        const existingUser = await User.findOne({ phone });
+        if (existingUser) {
+            return res.status(400).json({ message: "Phone already exists." });
+        }
+
+        // Генерируем соль
+        const salt = crypto.randomBytes(16).toString("hex");
+
+        // Хэшируем пароль
+        crypto.pbkdf2(password, salt, 310000, 32, "sha256", async (err, hashedPassword) => {
+            if (err) {
+                return res.status(500).json({ message: "Error hashing password." });
+            }
+
+            const role = () => {
+                const allAdmins = process.env.ADMINS.split(",").map((elem) => elem.toLowerCase());
+                console.log(allAdmins);
+                if (allAdmins.includes(phone)) {
+                    return "admin";
+                } else {
+                    return "customer";
+                }
+            };
+
+            // Создаем нового пользователя
+            const newUser = new User({
+                phone,
+                role: role(),
+                hashed_password: hashedPassword.toString("hex"),
+                salt,
+            });
+
+            // Сохраняем пользователя в базе данных
+            await newUser.save();
+
+            res.status(201).json({ ok: true, message: "User registered successfully." });
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Server error." });
+    }
 });
 
-// Логин
+// Роут для аутентификации (логина)
 router.post("/login", passport.authenticate("local-login"), (req, res) => {
-    // Логика логина
+    console.log('Мы тутуа');
+    const user = Object.create(req.user);
+    user.hashed_password = undefined;
+    user.salt = undefined;
+    user.__v = undefined;
+    res.json({ ok: true, message: "Login successful", user });
 });
 
-// Логаут
-router.get("/logout", (req, res) => {
-    // Логика логаута
+// Роут для выхода (логаута)
+router.get("/logout", (req, res, next) => {
+    req.logout(function (err) {
+        if (err) {
+            return next(err);
+        }
+    });
+    res.json({ ok: true, message: "Logout successful" });
 });
 
-// Статус аутентификации
+// Роут для проверки статуса аутентификации
 router.get("/status", (req, res) => {
-    // Логика проверки статуса
+    if (req.isAuthenticated()) {
+        res.json({ authenticated: true, user: req.user });
+    } else {
+        res.json({ authenticated: false });
+    }
+});
+
+
+router.get("/profile", (req, res) => {
+    res.json({ data: req.user, ok: true });
 });
 
 export default router;

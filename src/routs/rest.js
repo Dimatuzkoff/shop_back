@@ -10,22 +10,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
 import { getNovaPoshtaData } from "../services/novaPoshtaCache.js";
-
+import { routeWrapper } from "../utils/router.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = express.Router();
-
-const routeWrapper = (routeHandler) => {
-    return async (req, res, next) => {
-        try {
-            await routeHandler(req, res, next);
-        } catch (error) {
-            console.error(error);
-            res.status(500).send({ ok: false, message: "Server error", error });
-        }
-    };
-};
 
 // Конфигурация хранения файлов с Multer
 const storage = multer.diskStorage({
@@ -201,95 +190,6 @@ router.delete("/product/:id", (req, res) => {
             console.error("Error deleting product:", error);
             res.status(500).send("Error deleting product");
         });
-});
-
-// роутер гет-юзерс
-
-const getUsers = async (req, res) => {
-    console.log("GET USERS!!!");
-    const users = await User.find({});
-    res.json(users);
-};
-router.get("/users", routeWrapper(getUsers));
-
-// роутрер гет юзер по айди
-
-const getUserById = async (req, res) => {
-    const id = req.params.id;
-    res.send(`ok + ${id}`);
-};
-router.get("/user/:id", routeWrapper(getUserById));
-
-router.post("/register", async (req, res) => {
-    const { phone, password } = req.body;
-
-    try {
-        // Проверяем, существует ли пользователь с таким же именем
-        const existingUser = await User.findOne({ phone });
-        if (existingUser) {
-            return res.status(400).json({ message: "Phone already exists." });
-        }
-
-        // Генерируем соль
-        const salt = crypto.randomBytes(16).toString("hex");
-
-        // Хэшируем пароль
-        crypto.pbkdf2(password, salt, 310000, 32, "sha256", async (err, hashedPassword) => {
-            if (err) {
-                return res.status(500).json({ message: "Error hashing password." });
-            }
-
-            const role = () => {
-                const allAdmins = process.env.ADMINS.split(",").map((elem) => elem.toLowerCase());
-                console.log(allAdmins);
-                if (allAdmins.includes(phone)) {
-                    return "admin";
-                } else {
-                    return "customer";
-                }
-            };
-
-            // Создаем нового пользователя
-            const newUser = new User({
-                phone,
-                role: role(),
-                hashed_password: hashedPassword.toString("hex"),
-                salt,
-            });
-
-            // Сохраняем пользователя в базе данных
-            await newUser.save();
-
-            res.status(201).json({ ok: true, message: "User registered successfully." });
-        });
-    } catch (err) {
-        res.status(500).json({ message: "Server error." });
-    }
-});
-
-// Роут для аутентификации (логина)
-router.post("/login", passport.authenticate("local-login"), (req, res) => {
-    console.log('Мы тутуа');
-    const user = Object.create(req.user);
-    user.hashed_password = undefined;
-    user.salt = undefined;
-    user.__v = undefined;
-    res.json({ ok: true, message: "Login successful", user });
-});
-
-// Роут для выхода (логаута)
-router.get("/logout", (req, res) => {
-    req.logout();
-    res.json({ ok: true, message: "Logout successful" });
-});
-
-// Роут для проверки статуса аутентификации
-router.get("/status", (req, res) => {
-    if (req.isAuthenticated()) {
-        res.json({ authenticated: true, user: req.user });
-    } else {
-        res.json({ authenticated: false });
-    }
 });
 
 export default router;

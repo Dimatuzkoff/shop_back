@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getNovaPoshtaData } from "../services/novaPoshtaCache.js";
 import { opendirSync } from "fs";
 import { getNextSequenceValue } from "../utils/db.js";
-
+import { routeWrapper } from "../utils/router.js";
 const router = express.Router();
 
 router.post("/order", async (req, res) => {
