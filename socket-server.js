@@ -1,6 +1,7 @@
 // socketServer.js
 import { Server } from 'socket.io';
 import http from 'http';
+import { log } from 'console';
 
 const PORT = 3002;
 
@@ -15,8 +16,15 @@ const io = new Server(server, {
   },
 });
 
+const clients = [];
+
 io.on('connection', (socket) => {
   console.log('Пользователь подключен:', socket.id);
+  // console.log('список; ', io.sockets.sockets);
+  clients.push(socket);
+  console.log('Клиентов подключено:', clients.length);
+  
+  
 
   // Обработка входящих сообщений от клиента
   socket.on('message', (msg) => {
@@ -26,6 +34,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Пользователь отключен:', socket.id);
+    clients.splice(clients.indexOf(socket), 1);
   });
 });
 
