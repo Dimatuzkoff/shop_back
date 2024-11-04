@@ -11,6 +11,7 @@ const io = new Server(server, {
     cors: {
         origin: ["http://localhost:3000", "https://shop-front-nine.vercel.app"], // Укажите адрес вашего фронтенда
         methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type'],
     },
 });
 
