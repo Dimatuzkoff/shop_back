@@ -47,8 +47,8 @@ async function initializeApp() {
 
     // middleware последний (когда не найденный роут)
     app.use((req, res) => {
-        res.statusCode(404).send('Бла, мимо....');
-    });
+        res.status(404).send('Бла, мимо....');
+    });    
 
 
 }

@@ -16,8 +16,6 @@ const io = new Server(server, {
 
 server.listen(3001)
 
-
-
 const clients = [];
 
 io.on('connection', (socket) => {
