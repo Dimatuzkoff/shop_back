@@ -21,9 +21,7 @@ console.log("Сервер работает на порту " + port);
 
 const io = new Server(server, {
     cors: {
-        origin: process.env.NODE_ENV === 'production' 
-            ? ["https://shop-front-nine.vercel.app"] 
-            : ["http://localhost:3000"],
+        origin: ["http://localhost:3000", "https://shop-front-nine.vercel.app"],
         methods: ["GET", "POST"],
     },
 });
@@ -49,7 +47,7 @@ io.on('connection', (socket) => {
 
     if (process.env.NODE_ENV === 'production') {
         app.get("*", (req, res) => {
-            res.sendFile(path.join(staticPath, "index.html"));
+            res.sendFile(staticPath + "/index.html");
         });
     }
 });
