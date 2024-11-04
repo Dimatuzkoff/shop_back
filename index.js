@@ -9,11 +9,14 @@ console.log("Сервер работает!");
 
 const io = new Server(server, {
     cors: {
-        origin: ["http://localhost:3000", "https://shop-front-nine.vercel.app"], // Укажите адрес вашего фронтенда
-        methods: ['GET', 'POST'],
-        allowedHeaders: ['Content-Type'],
+        origin: ["http://localhost:3000", "https://shop-front-nine.vercel.app"],
+        methods: ["GET", "POST"],
+        allowedHeaders: ["Content-Type"],
+        credentials: true,
     },
+    transports: ['polling'],  // Указываем polling для обхода ограничений прокси
 });
+
 
 const port = process.env.PORT || 3001;
 server.listen(port)
