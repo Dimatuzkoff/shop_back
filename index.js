@@ -3,6 +3,8 @@ import app from './src/app/index.js';
 import 'dotenv/config'
 import { Server } from 'socket.io';
 
+const port = process.env.PORT || 3001;
+
 const server = http.createServer(app);
 console.log("Сервер работает!");
 // Создаем Socket.IO сервер
@@ -17,8 +19,6 @@ const io = new Server(server, {
     transports: ['polling'],  // Указываем polling для обхода ограничений прокси
 });
 
-
-const port = process.env.PORT || 3001;
 server.listen(port)
 
 const clients = [];
