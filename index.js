@@ -10,11 +10,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const port = process.env.PORT || 3001;
-const staticPath = path.resolve(__dirname, 'dist');
 
-console.log("Статический путь: ", staticPath);
 
-app.use(express.static(staticPath));
+// app.use(express.static(staticPath));
 
 const server = http.createServer(app);
 console.log("Сервер работает на порту " + port);
@@ -45,9 +43,4 @@ io.on('connection', (socket) => {
         clients.splice(clients.indexOf(socket), 1);
     });
 
-    if (process.env.NODE_ENV === 'production') {
-        app.get("*", (req, res) => {
-            res.sendFile(staticPath + "/index.html");
-        });
-    }
 });
