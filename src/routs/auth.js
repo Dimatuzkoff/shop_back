@@ -59,13 +59,14 @@ router.post("/register", async (req, res) => {
 });
 
 // Роут для аутентификации (логина)
-router.post("/login", passport.authenticate("local-login"), (req, res) => {
-    console.log('Мы тутуа');
+router.post("/login", passport.authenticate("local-login"), async (req, res) => {
     const user = Object.create(req.user);
-    user.hashed_password = undefined;
-    user.salt = undefined;
-    user.__v = undefined;
-    res.json({ ok: true, message: "Login successful", user });
+    user.token = generateToken();
+    const refreshedUser = await User.findByIdAndUpdate(user._id, { token: user.token });
+    refreshedUser.__v = undefined;
+    refreshedUser.salt = undefined;
+    refreshedUser.hashed_password = undefined;
+    res.json({ ok: true, message: "Login successful", user: refreshedUser });
 });
 
 // Роут для выхода (логаута)

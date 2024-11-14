@@ -33,6 +33,16 @@ io.on('connection', (socket) => {
     clients.push(socket);
     console.log('Клиентов подключено:', clients.length);
 
+    socket.on('userInfo', (info) => {
+        socket.user = info;
+    })
+
+    socket.on('getUserList', (data, callback) => {
+        const userList = clients.map(elem => ({ user: elem.user, id: elem.id }));
+        // Отправка ответа через callback
+        callback(userList);
+    });
+
     socket.on('message', (msg) => {
         console.log('Сообщение от клиента:', msg);
         io.emit('message', msg); // Рассылка сообщения всем клиентам
