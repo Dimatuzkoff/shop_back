@@ -90,7 +90,10 @@ router.get("/status", (req, res) => {
 
 
 router.get("/profile", (req, res) => {
+    console.log('req.user: ', req.user);
+    
     res.json({ data: req.user, ok: true });
+
 });
 
 export default router;
