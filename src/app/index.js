@@ -28,11 +28,12 @@ async function initializeApp() {
         resave: false,
         saveUninitialized: false,
         store: MongoStore.create({ mongoUrl: 'mongodb+srv://dimatuzkoff:5uPMUnhRxmzsA3cx@cluster0.ogdrcr6.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0' }),
-        // cookie: {
-        //     // secure: process.env.NODE_ENV === 'production', // Включено только для HTTPS
-        //     // httpOnly: true,
-        //     // sameSite: 'none', // Для междоменного использования
-        // },
+        cookie: {
+            secure: process.env.NODE_ENV === 'production', // Включено только для HTTPS
+            httpOnly: true,
+            // secure: true, // Для разработки можно использовать false, но для продакшена установите true и используйте HTTPS
+            sameSite: 'none', // Для междоменного использования
+        },
     }));
 
     // Инициализируем Passport.js после добавления express-session middleware
