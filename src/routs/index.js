@@ -3,6 +3,7 @@ import rest from "./rest.js";
 import user from "./user.js";
 import cors from "cors";
 import auth from "./auth.js";
+import client from "./client.js";
 const corsOptions = {
     origin: ["http://localhost:3000", "https://shop-front-nine.vercel.app"], // Домен вашего Nuxt приложения
     credentials: true, // Разрешает передачу куки
@@ -23,6 +24,8 @@ export default function routs(app) {
     app.use("/api", rest);
     app.use("/api", order);
     app.use("/api", user);
+    app.use("/api", client);
+
 }
 
 
