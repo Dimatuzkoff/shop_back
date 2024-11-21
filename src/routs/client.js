@@ -8,12 +8,10 @@ router.post("/client", (req, res) => {
     client
         .save()
         .then(() => {
-            console.log("Product saved successfully");
-            res.send("Product saved successfully");
+            res.send("client saved successfully");
         })
         .catch((error) => {
-            console.error("Error saving product:", error);
-            res.status(500).send("Error saving product");
+            res.status(500).send("Error saving client");
         });
 });
 
