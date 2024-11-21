@@ -1,15 +1,15 @@
 import express from "express";
 import crypto from "crypto";
-import passport from "passport";
 import User from "../modeles/user.js";
-
+import jwt from 'jsonwebtoken';
+import 'dotenv/config'
+import { verifyToken } from '../utils/router.js'
+import { log } from "console";
 const router = express.Router();
 
 const generateToken = () => {
     return crypto.randomBytes(64).toString("hex");
 };
-
-
 
 router.post("/register", async (req, res) => {
     const { phone, password } = req.body;
@@ -32,7 +32,6 @@ router.post("/register", async (req, res) => {
 
             const role = () => {
                 const allAdmins = process.env.ADMINS.split(",").map((elem) => elem.toLowerCase());
-                console.log(allAdmins);
                 if (allAdmins.includes(phone)) {
                     return "admin";
                 } else {
@@ -58,42 +57,51 @@ router.post("/register", async (req, res) => {
     }
 });
 
-// Роут для аутентификации (логина)
-router.post("/login", passport.authenticate("local-login"), async (req, res) => {
-    const user = Object.create(req.user);
-    user.token = generateToken();
-    const refreshedUser = await User.findByIdAndUpdate(user._id, { token: user.token });
-    refreshedUser.__v = undefined;
-    refreshedUser.salt = undefined;
-    refreshedUser.hashed_password = undefined;
-    res.json({ ok: true, message: "Login successful", user: refreshedUser });
-});
+router.post("/login", async (req, res) => {
+    const { phone, password } = req.body;
+    const user = await User.findOne({ phone });
+    if (!user) {
+        return res.json({ message: 'Incorrect phone or password.', ok: false });
+    } else {
+        crypto.pbkdf2(password, user.salt, 310000, 32, 'sha256', (err, hashedPassword) => {
+            if (err) return res.json({ message: 'Something wrong', ok: false });
+
+            const isPasswordValid = crypto.timingSafeEqual(
+                Buffer.from(user.hashed_password, 'hex'),
+                hashedPassword
+            );
+
+            if (!isPasswordValid) {
+                return res.json({ message: 'Incorrect phone or password.', ok: false });
+            } else {
+                const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: '1h' });
+                user.hashed_password = undefined;
+                user.__v = undefined;
+                user.salt = undefined;
+                res.json({ user, token, ok: true });
+            }
+
+        });
+    }
+})
 
 // Роут для выхода (логаута)
-router.get("/logout", (req, res, next) => {
-    req.logout(function (err) {
-        if (err) {
-            return next(err);
-        }
-    });
-    res.json({ ok: true, message: "Logout successful" });
-});
+// router.get("/logout", (req, res, next) => {
+//     req.logout(function (err) {
+//         if (err) {
+//             return next(err);
+//         }
+//     });
+//     res.json({ ok: true, message: "Logout successful" });
+// });
 
-// Роут для проверки статуса аутентификации
-router.get("/status", (req, res) => {
-    if (req.isAuthenticated()) {
-        res.json({ authenticated: true, user: req.user });
-    } else {
-        res.json({ authenticated: false });
-    }
-});
-
-
-router.get("/profile", (req, res) => {
+router.get("/profile", verifyToken, async (req, res) => {
     console.log('req.user: ', req.user);
-    
-    res.json({ data: req.user, ok: true });
-
+    const user = await User.findOne({ _id: req.user.userId });
+    user.hashed_password = undefined;
+    user.__v = undefined;
+    user.salt = undefined;
+    res.json({ user, ok: true });
 });
 
 export default router;

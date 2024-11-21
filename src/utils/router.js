@@ -1,3 +1,7 @@
+import jwt from 'jsonwebtoken';
+import 'dotenv/config'
+
+
 export const routeWrapper = (routeHandler) => {
     return async (req, res, next) => {
         try {
@@ -7,4 +11,21 @@ export const routeWrapper = (routeHandler) => {
             res.status(500).send({ ok: false, message: "Server error", error });
         }
     };
+};
+
+
+export const verifyToken = (req, res, next) => {
+    const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
+    console.log('token: ', token);
+    if (!token) {
+        return res.status(403).json({ message: 'Токен не предоставлен' });
+    }
+
+    jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Неверный токен' });
+        }
+        req.user = decoded;
+        next();
+    });
 };

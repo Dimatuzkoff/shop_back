@@ -2,7 +2,6 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import db from './db.js';
 import session from 'express-session';
-import passportInit from './passport.js';
 import MongoStore from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import path from "path";
@@ -22,22 +21,6 @@ async function initializeApp() {
     // Подключаемся к базе данных
     const mongooseConnection = await db();
 
-    // Настраиваем сессии с использованием MongoDB для хранения сессий
-    app.use(session({
-        secret: 'your_secret_key',
-        resave: false,
-        saveUninitialized: false,
-        store: MongoStore.create({ mongoUrl: 'mongodb+srv://dimatuzkoff:5uPMUnhRxmzsA3cx@cluster0.ogdrcr6.mongodb.net/shop?retryWrites=true&w=majority&appName=Cluster0' }),
-        cookie: {
-            secure: process.env.NODE_ENV === 'production', // Включено только для HTTPS
-            httpOnly: true,
-            // secure: true, // Для разработки можно использовать false, но для продакшена установите true и используйте HTTPS
-            sameSite: 'none', // Для междоменного использования
-        },
-    }));
-
-    // Инициализируем Passport.js после добавления express-session middleware
-    passportInit(app);
 
     app.use(cookieParser());
     app.use(bodyParser.json());
@@ -54,7 +37,7 @@ async function initializeApp() {
     // middleware последний (когда не найденный роут)
     app.use((req, res) => {
         res.status(404).send('Бла, мимо....');
-    });    
+    });
 
 
 }
