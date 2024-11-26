@@ -74,12 +74,13 @@ router.post("/login", async (req, res) => {
             if (!isPasswordValid) {
                 return res.json({ message: 'Incorrect phone or password.', ok: false });
             } else {
-                const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: '1h' });
+                const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: '1m' });
                 user.hashed_password = undefined;
                 user.__v = undefined;
                 user.salt = undefined;
-                res.setHeader('Authorization', `Bearer ${token}`);
-                res.json({ user, token, ok: true });
+                res.setHeader('Authorization', token);
+                res.header('Access-Control-Expose-Headers', 'Authorization');
+                res.json({ user, ok: true });
             }
 
         });
@@ -97,11 +98,13 @@ router.post("/login", async (req, res) => {
 // });
 
 router.get("/profile", verifyToken, async (req, res) => {
-    console.log('req.user: ', req.user);
     const user = await User.findOne({ _id: req.user.userId });
     user.hashed_password = undefined;
     user.__v = undefined;
     user.salt = undefined;
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: '1m' });
+    res.setHeader('Authorization', token);
+    res.header('Access-Control-Expose-Headers', 'Authorization');
     res.json({ user, ok: true });
 });
 
