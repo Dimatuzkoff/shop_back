@@ -78,6 +78,7 @@ router.post("/login", async (req, res) => {
                 user.hashed_password = undefined;
                 user.__v = undefined;
                 user.salt = undefined;
+                res.setHeader('Authorization', `Bearer ${token}`);
                 res.json({ user, token, ok: true });
             }
 
