@@ -78,7 +78,6 @@ router.post("/login", async (req, res) => {
                 user.hashed_password = undefined;
                 user.__v = undefined;
                 user.salt = undefined;
-                // res.setHeader('Authorization', `Bearer ${token}`);
                 res.setHeader('Authorization', `${token}`);
 
                 res.header('Access-Control-Allow-Origin', 'http://localhost:3000', 'https://shop-front-nine.vercel.app');
@@ -106,9 +105,6 @@ router.get("/profile", authGuard, async (req, res) => {
     user.hashed_password = undefined;
     user.__v = undefined;
     user.salt = undefined;
-    // const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: '1m' });
-    // res.setHeader('Authorization', token);
-    // res.header('Access-Control-Expose-Headers', 'Authorization');
     res.json({ user, ok: true });
 });
 

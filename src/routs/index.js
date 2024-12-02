@@ -13,26 +13,19 @@ const corsOptions = {
 };
 
 
-
-
 // Подключение маршрутов
 export default function routes(app) {
     app.use(cors(corsOptions));
     app.use((req, res, next) => {
         // Извлечение токена из заголовка Authorization
         const token = req.headers['authorization']?.split(' ')[1];
-
-        console.log('!!!!!!!!!!! Received token: ', token);
-
         if (token) {
             jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
                 if (err) {
-                    console.log('Invalid token!');
                     return res.status(401).json({ message: 'Invalid token' });
                 } else {
                     // Токен успешно декодирован
                     req.user = decoded;
-                    console.log('Decoded token payload: ', req.user);
 
                     // Генерация нового токена
                     const newToken = jwt.sign(
@@ -42,7 +35,6 @@ export default function routes(app) {
                     );
 
                     // Установка нового токена в заголовок ответа
-                    // res.setHeader('Authorization', `Bearer ${newToken}`);
                     res.setHeader('Authorization', `${newToken}`);
 
                     // CORS настройки для работы заголовков
@@ -50,22 +42,15 @@ export default function routes(app) {
                     res.header('Access-Control-Allow-Credentials', 'true');
                     res.header('Access-Control-Expose-Headers', 'Authorization'); // Разрешение клиенту видеть заголовок Authorization
 
-                    console.log('Old token:', token);
-                    console.log('New token: ', newToken);
-
                     next();
                 }
             });
         } else {
             // Если токен отсутствует, переходим к следующему обработчику
+            res.setHeader('Authorization', "");
             next();
         }
     });
-
-
-
-
-
 
     //   app.use("/api", authRoutes);
     // app.use("/api", productRoutes);
