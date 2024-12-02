@@ -22,6 +22,7 @@ export default function routes(app) {
         if (token) {
             jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
                 if (err) {
+                    res.removeHeader('Authorization');
                     return res.status(401).json({ message: 'Invalid token' });
                 } else {
                     // Токен успешно декодирован
@@ -47,7 +48,7 @@ export default function routes(app) {
             });
         } else {
             // Если токен отсутствует, переходим к следующему обработчику
-            res.setHeader('Authorization', "");
+            res.removeHeader('Authorization');
             next();
         }
     });
