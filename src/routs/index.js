@@ -20,9 +20,9 @@ export default function routes(app) {
         // Извлечение токена из заголовка Authorization
         const token = req.headers['authorization']?.split(' ')[1];
         if (token) {
+
             jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
                 if (err) {
-                    res.removeHeader('Authorization');
                     return res.status(401).json({ message: 'Invalid token' });
                 } else {
                     // Токен успешно декодирован
@@ -48,7 +48,8 @@ export default function routes(app) {
             });
         } else {
             // Если токен отсутствует, переходим к следующему обработчику
-            res.removeHeader('Authorization');
+            res.setHeader('Authorization', null);
+
             next();
         }
     });
