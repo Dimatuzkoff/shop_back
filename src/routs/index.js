@@ -42,7 +42,8 @@ export default function routes(app) {
                     );
 
                     // Установка нового токена в заголовок ответа
-                    res.setHeader('Authorization', `Bearer ${newToken}`);
+                    // res.setHeader('Authorization', `Bearer ${newToken}`);
+                    res.setHeader('Authorization', `${newToken}`);
 
                     // CORS настройки для работы заголовков
                     res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Укажите нужный адрес клиента

@@ -4,7 +4,7 @@ const ClientSchema = new mongoose.Schema({
     name: String,
     phone: String,
     email: String,
-    country: String,
+    country: [],
 });
 
 const Client = mongoose.model('Client', ClientSchema);
