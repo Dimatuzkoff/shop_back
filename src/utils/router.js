@@ -14,19 +14,36 @@ export const routeWrapper = (routeHandler) => {
 };
 
 
-export const verifyToken = (req, res, next) => {
-    const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
-    console.log('token: ', token);
-    if (!token) {
+// export const verifyToken = (req, res, next) => {
+//     const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
+//     console.log('token: ', token);
+//     if (!token) {
+//         return res.status(403).json({ message: 'Токен не предоставлен' });
+//     }
+
+//     jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+//         if (err) {
+//             return res.status(401).json({ message: 'Неверный токен' });
+//         }
+//         req.user = decoded;
+
+//         next();
+//     });
+// };
+
+export const authGuard = (req, res, next) => {
+   if (!req.user) {
         return res.status(403).json({ message: 'Токен не предоставлен' });
     }
-
-    jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ message: 'Неверный токен' });
-        }
-        req.user = decoded;
-
-        next();
-    });
+    next();
 };
+
+export const adminGuard = (req, res, next) => {
+    if (!req.user) {
+         return res.status(403).json({ message: 'Токен не предоставлен' });
+     }
+     if (req.user.role !== 'admin') {
+         return res.status(403).json({ message: 'Токен не предоставлен' });
+     }
+     next();
+ };

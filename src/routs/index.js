@@ -16,35 +16,52 @@ const corsOptions = {
 
 
 // Подключение маршрутов
-export default function routs(app) {
+export default function routes(app) {
     app.use(cors(corsOptions));
     app.use((req, res, next) => {
+        // Извлечение токена из заголовка Authorization
+        const token = req.headers['authorization']?.split(' ')[1];
 
-        const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
-        console.log('!!!!!!!!!!!token: ', token);
-        next();
-        // if (token) {
-        //     jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
-        //         if (err) {
-        //             console.log('неверный токен! ');
-        //             return res.status(401).json({ message: 'Неверный токен' });
-        //         } else {
-        //             req.user = decoded;
-        //             console.log('decoded: ', req.user);
-        //             const newToken = jwt.sign({ userId: user.userId }, process.env.SECRET_KEY, { expiresIn: '1m' });
-        //             res.setHeader('Authorization', newToken);
-        //             res.header('Access-Control-Allow-Origin', 'http://localhost:3000', 'https://shop-front-nine.vercel.app');
-        //             res.header('Access-Control-Allow-Credentials', 'true');
-        //             res.header('Access-Control-Expose-Headers', 'Authorization');
-        //             console.log('token', token);
-        //             console.log('newToken: ', newToken);
-        //             next();
-        //         }
+        console.log('!!!!!!!!!!! Received token: ', token);
 
-        //     });
-        // }
+        if (token) {
+            jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
+                if (err) {
+                    console.log('Invalid token!');
+                    return res.status(401).json({ message: 'Invalid token' });
+                } else {
+                    // Токен успешно декодирован
+                    req.user = decoded;
+                    console.log('Decoded token payload: ', req.user);
 
-    })
+                    // Генерация нового токена
+                    const newToken = jwt.sign(
+                        { userId: req.user.userId }, // Используем userId из декодированного токена
+                        process.env.SECRET_KEY,
+                        { expiresIn: '1m' }
+                    );
+
+                    // Установка нового токена в заголовок ответа
+                    res.setHeader('Authorization', `Bearer ${newToken}`);
+
+                    // CORS настройки для работы заголовков
+                    res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // Укажите нужный адрес клиента
+                    res.header('Access-Control-Allow-Credentials', 'true');
+                    res.header('Access-Control-Expose-Headers', 'Authorization'); // Разрешение клиенту видеть заголовок Authorization
+
+                    console.log('Old token:', token);
+                    console.log('New token: ', newToken);
+
+                    next();
+                }
+            });
+        } else {
+            // Если токен отсутствует, переходим к следующему обработчику
+            next();
+        }
+    });
+
+
 
 
 
@@ -61,6 +78,7 @@ export default function routs(app) {
     app.use("/api", client);
 
 }
+
 
 
 

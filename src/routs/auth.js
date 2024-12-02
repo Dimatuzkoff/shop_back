@@ -3,7 +3,7 @@ import crypto from "crypto";
 import User from "../modeles/user.js";
 import jwt from 'jsonwebtoken';
 import 'dotenv/config'
-import { verifyToken } from '../utils/router.js'
+import { authGuard} from '../utils/router.js'
 import { log } from "console";
 const router = express.Router();
 
@@ -78,7 +78,7 @@ router.post("/login", async (req, res) => {
                 user.hashed_password = undefined;
                 user.__v = undefined;
                 user.salt = undefined;
-                res.setHeader('Authorization', token);
+                res.setHeader('Authorization', `Bearer ${token}`);
                 res.header('Access-Control-Allow-Origin', 'http://localhost:3000', 'https://shop-front-nine.vercel.app');
                 res.header('Access-Control-Allow-Credentials', 'true');
                 res.header('Access-Control-Expose-Headers', 'Authorization');
@@ -99,7 +99,7 @@ router.post("/login", async (req, res) => {
 //     res.json({ ok: true, message: "Logout successful" });
 // });
 
-router.get("/profile", verifyToken, async (req, res) => {
+router.get("/profile", authGuard, async (req, res) => {
     const user = await User.findOne({ _id: req.user.userId });
     user.hashed_password = undefined;
     user.__v = undefined;
