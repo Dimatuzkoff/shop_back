@@ -32,7 +32,7 @@ export default function routes(app) {
                     const newToken = jwt.sign(
                         { userId: req.user.userId }, // Используем userId из декодированного токена
                         process.env.SECRET_KEY,
-                        { expiresIn: '1m' }
+                        { expiresIn: '15m' }
                     );
 
                     // Установка нового токена в заголовок ответа

@@ -127,9 +127,6 @@ function generateToken() {
 }
 
 router.all("*", (req, res, next) => {
-    // console.log(req.method, req.url, req.cookies['myCookie']);
-    // res.cookie('myCookie', 'cookieValue', { maxAge: 900000, httpOnly: true });
-    console.log(req.cookies);
     const anonimusToken = req.cookies["anonimusToken"];
 
     if (!anonimusToken) {
@@ -143,7 +140,6 @@ router.all("*", (req, res, next) => {
 });
 
 router.get("/products", async (req, res) => {
-    console.log("GET PRODUCTS!!!", req.query);
     const data = await Product.find(req.query);
     res.json(data);
 });

@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.put("/user", async (req, res) => {
     const userId = req.user._id;
-    console.log(req.user);
     const updatedUser = await User.findByIdAndUpdate(userId, req.body, { new: true });
     res.json({ ok: true, message: "User saved successfully", user: updatedUser });
 });
@@ -14,7 +13,6 @@ router.put("/user", async (req, res) => {
 // роутер гет-юзерс
 
 const getUsers = async (req, res) => {
-    console.log("GET USERS!!!");
     const users = await User.find({});
     res.json(users);
 };

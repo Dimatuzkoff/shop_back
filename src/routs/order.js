@@ -21,7 +21,6 @@ router.post("/order", async (req, res) => {
         .save()
         .then(() => {
             console.log("Order saved successfully");
-            console.log(req.body);
             res.json({ ok: true, message: "Order saved successfully" });
         })
         .catch((error) => {

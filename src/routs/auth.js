@@ -90,16 +90,6 @@ router.post("/login", async (req, res) => {
     }
 })
 
-// Роут для выхода (логаута)
-// router.get("/logout", (req, res, next) => {
-//     req.logout(function (err) {
-//         if (err) {
-//             return next(err);
-//         }
-//     });
-//     res.json({ ok: true, message: "Logout successful" });
-// });
-
 router.get("/profile", authGuard, async (req, res) => {
     const user = await User.findOne({ _id: req.user.userId });
     user.hashed_password = undefined;
