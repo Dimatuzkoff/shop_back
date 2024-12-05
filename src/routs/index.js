@@ -39,15 +39,14 @@ export default function routes(app) {
                     res.setHeader('Authorization', `${newToken}`);
 
                     // CORS настройки для работы заголовков
-                    // res.header('Access-Control-Allow-Origin', 'http://localhost:3000', 'https://shop-front-nine.vercel.app');
-                    // res.header('Access-Control-Allow-Credentials', 'true');
+                    res.header('Access-Control-Allow-Origin', 'http://localhost:3000', 'https://shop-front-nine.vercel.app');
+                    res.header('Access-Control-Allow-Credentials', 'true');
                     res.header('Access-Control-Expose-Headers', 'Authorization');
 
                     next();
                 }
             });
         } else {
-            // Если токен отсутствует, переходим к следующему обработчику
             res.setHeader('Authorization', null);
 
             next();
