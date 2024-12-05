@@ -5,7 +5,6 @@ const router = express.Router();
 
 router.post("/client", (req, res) => {
     const client = new Client(req.body);
-    client.__v = undefined;
     client
         .save()
         .then(() => {

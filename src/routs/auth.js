@@ -80,9 +80,9 @@ router.post("/login", async (req, res) => {
                 user.salt = undefined;
                 res.setHeader('Authorization', `${token}`);
 
-                res.header('Access-Control-Allow-Origin', 'http://localhost:3000', 'https://shop-front-nine.vercel.app');
-                res.header('Access-Control-Allow-Credentials', 'true');
-                res.header('Access-Control-Expose-Headers', 'Authorization');
+                // res.header('Access-Control-Allow-Origin', 'http://localhost:3000', 'https://shop-front-nine.vercel.app');
+                // res.header('Access-Control-Allow-Credentials', 'true');
+                // res.header('Access-Control-Expose-Headers', 'Authorization');
                 res.json({ user, ok: true });
             }
 
