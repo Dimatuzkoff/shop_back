@@ -28,17 +28,30 @@ server.listen(port);
 
 const clients = [];
 
+const getUserList = () => {
+
+    console.log(clients.map(elem => ({ user: elem.user, id: elem.id })));
+
+    return clients.map(elem => ({ user: elem.user, id: elem.id }));
+
+}
+
 io.on('connection', (socket) => {
+    socket.user = 'anonimous';
     console.log('Пользователь подключен:', socket.id);
     clients.push(socket);
     console.log('Клиентов подключено:', clients.length);
+    
+    io.emit('userList', getUserList());
 
     socket.on('userInfo', (info) => {
         socket.user = info;
     })
 
     socket.on('getUserList', (data, callback) => {
-        const userList = clients.map(elem => ({ user: elem.user, id: elem.id }));
+        // const userList = clients.map(elem => ({ user: elem.user, id: elem.id }));
+        const userList = getUserList();
+       
         // Отправка ответа через callback
         callback(userList);
     });
@@ -51,6 +64,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('Пользователь отключен:', socket.id);
         clients.splice(clients.indexOf(socket), 1);
+        io.emit('userList', getUserList());
     });
 
 });
