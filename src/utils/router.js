@@ -32,7 +32,8 @@ export const routeWrapper = (routeHandler) => {
 // };
 
 export const authGuard = (req, res, next) => {
-   if (!req.user) {
+    console.log(req.ip);
+    if (!req.user) {
         return res.status(403).json({ message: 'Токен не предоставлен' });
     }
     next();
@@ -40,10 +41,10 @@ export const authGuard = (req, res, next) => {
 
 export const adminGuard = (req, res, next) => {
     if (!req.user) {
-         return res.status(403).json({ message: 'Токен не предоставлен' });
-     }
-     if (req.user.role !== 'admin') {
-         return res.status(403).json({ message: 'Токен не предоставлен' });
-     }
-     next();
- };
+        return res.status(403).json({ message: 'Токен не предоставлен' });
+    }
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Токен не предоставлен' });
+    }
+    next();
+};

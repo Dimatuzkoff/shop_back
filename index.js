@@ -32,7 +32,7 @@ const getUserList = () => {
 
     console.log(clients.map(elem => ({ user: elem.user, id: elem.id })));
 
-    return clients.map(elem => ({ user: elem.user, id: elem.id, ip: elem.handshake.address }));
+    return clients.map(elem => ({ user: elem.user, id: elem.id, ip: elem.handshake.address, agent: elem.handshake.headers['user-agent'] }));
 
 }
 
