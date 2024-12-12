@@ -32,7 +32,7 @@ const getUserList = () => {
 
     console.log(clients.map(elem => ({ user: elem.user, id: elem.id })));
 
-    return clients.map(elem => ({ user: elem.user, id: elem.id }));
+    return clients.map(elem => ({ user: elem.user, id: elem.id, ip: elem.handshake.address }));
 
 }
 
@@ -41,7 +41,7 @@ io.on('connection', (socket) => {
     console.log('Пользователь подключен:', socket.id);
     clients.push(socket);
     console.log('Клиентов подключено:', clients.length);
-    
+
     io.emit('userList', getUserList());
 
     socket.on('userInfo', (info) => {
@@ -51,7 +51,7 @@ io.on('connection', (socket) => {
     socket.on('getUserList', (data, callback) => {
         // const userList = clients.map(elem => ({ user: elem.user, id: elem.id }));
         const userList = getUserList();
-       
+
         // Отправка ответа через callback
         callback(userList);
     });
