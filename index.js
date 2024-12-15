@@ -5,7 +5,7 @@ import 'dotenv/config';
 import { Server } from 'socket.io';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
+import { UAParser } from 'ua-parser-js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -29,10 +29,22 @@ server.listen(port);
 const clients = [];
 
 const getUserList = () => {
+    return clients.map(elem => {
 
-    console.log(clients.map(elem => ({ user: elem.user, id: elem.id })));
-
-    return clients.map(elem => ({ user: elem.user, id: elem.id, ip: elem.handshake.address, agent: elem.handshake.headers['user-agent'] }));
+        const userAgent = elem.handshake.headers['user-agent'];
+        const parser = new UAParser(userAgent);
+        const deviceInfo = parser.getResult();
+        const agent = {
+            browser: deviceInfo.browser.name || 'Unknown',
+            browserVersion: deviceInfo.browser.version || 'Unknown',
+            os: deviceInfo.os.name || 'Unknown',
+            osVersion: deviceInfo.os.version || 'Unknown',
+            device: deviceInfo.device.model || 'Desktop',
+            type: deviceInfo.device.type || 'PC',
+        };
+        return { user: elem.user, id: elem.id, ip: elem.handshake.address, agent }
+    }
+    )
 
 }
 
@@ -46,6 +58,7 @@ io.on('connection', (socket) => {
 
     socket.on('userInfo', (info) => {
         socket.user = info;
+        io.emit('userList', getUserList());
     })
 
     socket.on('getUserList', (data, callback) => {
