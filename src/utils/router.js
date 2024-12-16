@@ -36,6 +36,7 @@ export const authGuard = (req, res, next) => {
     if (!req.user) {
         return res.status(403).json({ message: 'Токен не предоставлен' });
     }
+    console.log("req.user", req.user);
     next();
 };
 

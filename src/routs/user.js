@@ -1,11 +1,12 @@
 import express from "express";
 import User from "../modeles/user.js";
 import { routeWrapper } from "../utils/router.js";
+import { authGuard } from '../utils/router.js'
 
 const router = express.Router();
 
-router.put("/user", async (req, res) => {
-    const userId = req.user._id;
+router.put("/user", authGuard, async (req, res) => {
+    const userId = req.user.userId;
     const updatedUser = await User.findByIdAndUpdate(userId, req.body, { new: true });
     res.json({ ok: true, message: "User saved successfully", user: updatedUser });
 });
