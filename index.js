@@ -61,12 +61,9 @@ io.on('connection', (socket) => {
         io.emit('userList', getUserList());
     })
 
-    socket.on('getUserList', (data, callback) => {
-        // const userList = clients.map(elem => ({ user: elem.user, id: elem.id }));
-        const userList = getUserList();
+    socket.on('getUserListKick', (data) => {
+        io.emit('userList', getUserList());
 
-        // Отправка ответа через callback
-        callback(userList);
     });
 
     socket.on('message', (msg) => {
