@@ -28,12 +28,14 @@ server.listen(port);
 
 const clients = [];
 
+
+
 const getUserList = () => {
     return clients.map(elem => {
-
         const userAgent = elem.handshake.headers['user-agent'];
         const parser = new UAParser(userAgent);
         const deviceInfo = parser.getResult();
+
         const agent = {
             browser: deviceInfo.browser.name || 'Unknown',
             browserVersion: deviceInfo.browser.version || 'Unknown',
@@ -42,11 +44,42 @@ const getUserList = () => {
             device: deviceInfo.device.model || 'Desktop',
             type: deviceInfo.device.type || 'PC',
         };
-        return { user: elem.user, id: elem.id, ip: elem.handshake.address, agent }
-    }
-    )
 
-}
+        return {
+            user: elem.user, // Информация о пользователе
+            id: elem.id, // Socket ID
+            ip: elem.handshake.address, // IP адрес
+            agent, // Информация об устройстве
+        };
+    });
+};
+
+const getAgrigatedUserList = () => {
+    const userList = getUserList(); // Получаем список всех соединений
+
+    const aggregatedUsers = userList.reduce((acc, connection) => {
+        const userId = connection.user?._id;
+
+        if (!acc[userId]) {
+            acc[userId] = {
+                user: connection.user, // Информация о пользователе
+                connections: [], // Массив соединений
+            };
+        }
+
+        acc[userId].connections.push({
+            id: connection.id,
+            ip: connection.ip,
+            agent: connection.agent,
+        });
+
+        return acc;
+    }, {});
+
+    // Возвращаем массив сгруппированных пользователей
+    return Object.values(aggregatedUsers);
+};
+
 
 io.on('connection', (socket) => {
     socket.user = 'anonimous';
@@ -54,15 +87,15 @@ io.on('connection', (socket) => {
     clients.push(socket);
     console.log('Клиентов подключено:', clients.length);
 
-    io.emit('userList', getUserList());
+    io.emit('userList', getAgrigatedUserList());
 
     socket.on('userInfo', (info) => {
         socket.user = info;
-        io.emit('userList', getUserList());
+        io.emit('userList', getAgrigatedUserList());
     })
 
     socket.on('getUserListKick', (data) => {
-        io.emit('userList', getUserList());
+        io.emit('userList', getAgrigatedUserList());
 
     });
 
@@ -74,7 +107,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('Пользователь отключен:', socket.id);
         clients.splice(clients.indexOf(socket), 1);
-        io.emit('userList', getUserList());
+        io.emit('userList', getAgrigatedUserList());
     });
 
 });
