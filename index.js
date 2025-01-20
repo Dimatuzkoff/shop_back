@@ -6,6 +6,7 @@ import { Server } from 'socket.io';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { UAParser } from 'ua-parser-js';
+import { sign } from 'crypto';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -36,6 +37,7 @@ const getUserList = () => {
         const parser = new UAParser(userAgent);
         const deviceInfo = parser.getResult();
 
+
         const agent = {
             browser: deviceInfo.browser.name || 'Unknown',
             browserVersion: deviceInfo.browser.version || 'Unknown',
@@ -50,6 +52,7 @@ const getUserList = () => {
             id: elem.id, // Socket ID
             ip: elem.handshake.address, // IP адрес
             agent, // Информация об устройстве
+            fingerprint: elem.fingerprint
         };
     });
 };
@@ -59,19 +62,24 @@ const getAgrigatedUserList = () => {
 
     const aggregatedUsers = userList.reduce((acc, connection) => {
         const userId = connection.user?._id;
+        const fingerprint = connection.fingerprint;
+        const sign = userId || fingerprint;
 
-        if (!acc[userId]) {
-            acc[userId] = {
+        if (!acc[sign]) {
+            acc[sign] = {
                 user: connection.user, // Информация о пользователе
                 connections: [], // Массив соединений
+                sign
             };
         }
 
-        acc[userId].connections.push({
+        acc[sign].connections.push({
             id: connection.id,
             ip: connection.ip,
             agent: connection.agent,
         });
+        console.log(JSON.stringify(acc, null, 2));
+        
 
         return acc;
     }, {});
@@ -89,6 +97,9 @@ io.on('connection', (socket) => {
 
     io.emit('userList', getAgrigatedUserList());
 
+    socket.on('setFingerPrint', (fingerprint) => {
+        socket.fingerprint = fingerprint;
+    })
     socket.on('userInfo', (info) => {
         socket.user = info;
         io.emit('userList', getAgrigatedUserList());
