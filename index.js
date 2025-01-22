@@ -37,7 +37,6 @@ const getUserList = () => {
         const parser = new UAParser(userAgent);
         const deviceInfo = parser.getResult();
 
-
         const agent = {
             browser: deviceInfo.browser.name || 'Unknown',
             browserVersion: deviceInfo.browser.version || 'Unknown',
@@ -79,7 +78,7 @@ const getAgrigatedUserList = () => {
             agent: connection.agent,
         });
         console.log(JSON.stringify(acc, null, 2));
-        
+
 
         return acc;
     }, {});
@@ -91,14 +90,13 @@ const getAgrigatedUserList = () => {
 
 io.on('connection', (socket) => {
     socket.user = 'anonimous';
-    console.log('Пользователь подключен:', socket.id);
     clients.push(socket);
-    console.log('Клиентов подключено:', clients.length);
 
     io.emit('userList', getAgrigatedUserList());
 
     socket.on('setFingerPrint', (fingerprint) => {
         socket.fingerprint = fingerprint;
+        io.emit('userList', getAgrigatedUserList()); //добавил
     })
     socket.on('userInfo', (info) => {
         socket.user = info;
