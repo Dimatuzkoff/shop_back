@@ -89,8 +89,6 @@ const getAgrigatedUserList = () => {
 
 async function getAllChatMessages(fingerPrint) {
     const msgs = await Msg.find({ fingerPrint });
-
-    console.log('AllChatMessages', msgs);
     return msgs
 }
 
@@ -98,13 +96,16 @@ io.on('connection', (socket) => {
     socket.user = 'anonimous';
     clients.push(socket);
 
-    io.emit('userList', getAgrigatedUserList());
+    // io.emit('userList', getAgrigatedUserList());
 
-    socket.on('setFingerPrint', (fingerprint) => {
+    socket.on('setFingerPrint', async (fingerprint) => {
         socket.fingerprint = fingerprint;
-        socket.emit('allChatMessages', getAllChatMessages(fingerprint))
+        const messages = await getAllChatMessages(fingerprint);
+        socket.emit('allChatMessages', messages)
         io.emit('userList', getAgrigatedUserList()); //добавил
     })
+
+
     socket.on('userInfo', (info) => {
         socket.user = info;
         io.emit('userList', getAgrigatedUserList());
@@ -116,8 +117,6 @@ io.on('connection', (socket) => {
     });
 
     socket.on('message', (msg) => {
-        console.log('Сообщение от клиента:', msg);
-
         const newMsg = new Msg(msg);
         newMsg.save();
     });
