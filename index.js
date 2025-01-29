@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { UAParser } from 'ua-parser-js';
 import { sign } from 'crypto';
+import Msg from "./src/modeles/message.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -77,7 +78,6 @@ const getAgrigatedUserList = () => {
             ip: connection.ip,
             agent: connection.agent,
         });
-        console.log(JSON.stringify(acc, null, 2));
 
 
         return acc;
@@ -87,6 +87,12 @@ const getAgrigatedUserList = () => {
     return Object.values(aggregatedUsers);
 };
 
+async function getAllChatMessages(fingerPrint) {
+    const msgs = await Msg.find({ fingerPrint });
+
+    console.log('AllChatMessages', msgs);
+    return msgs
+}
 
 io.on('connection', (socket) => {
     socket.user = 'anonimous';
@@ -96,6 +102,7 @@ io.on('connection', (socket) => {
 
     socket.on('setFingerPrint', (fingerprint) => {
         socket.fingerprint = fingerprint;
+        socket.emit('allChatMessages', getAllChatMessages(fingerprint))
         io.emit('userList', getAgrigatedUserList()); //добавил
     })
     socket.on('userInfo', (info) => {
@@ -110,7 +117,9 @@ io.on('connection', (socket) => {
 
     socket.on('message', (msg) => {
         console.log('Сообщение от клиента:', msg);
-        io.emit('message', msg); // Рассылка сообщения всем клиентам
+
+        const newMsg = new Msg(msg);
+        newMsg.save();
     });
 
     socket.on('disconnect', () => {

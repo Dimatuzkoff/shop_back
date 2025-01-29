@@ -7,7 +7,8 @@ const User = mongoose.model('User', {
     email: { type: String },
     name: { type: String },
     surname: { type: String },
-    token: { type: String }
+    token: { type: String },
+    fingerPrints: { type: Array }
 });
 
 
