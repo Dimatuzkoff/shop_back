@@ -14,8 +14,6 @@ const __dirname = path.dirname(__filename);
 const port = process.env.PORT || 3001;
 
 
-// app.use(express.static(staticPath));
-
 const server = http.createServer(app);
 console.log("Сервер работает на порту " + port);
 
@@ -87,28 +85,35 @@ const getAgrigatedUserList = () => {
     return Object.values(aggregatedUsers);
 };
 
-async function getAllChatMessages(fingerPrint) {
-    const msgs = await Msg.find({ fingerPrint });
+async function getAllChatMessages(field, value) {
+    let filter = { [field]: value };
+    let msgs = await Msg.find(filter);
     return msgs
 }
 
 io.on('connection', (socket) => {
     socket.user = 'anonimous';
     clients.push(socket);
+    socket.emit('test', '55555')
 
-    // io.emit('userList', getAgrigatedUserList());
+
 
     socket.on('setFingerPrint', async (fingerprint) => {
         socket.fingerprint = fingerprint;
-        const messages = await getAllChatMessages(fingerprint);
-        socket.emit('allChatMessages', messages)
-        io.emit('userList', getAgrigatedUserList()); //добавил
+        if (fingerprint) {
+            const messages = await getAllChatMessages('fingerPrint', fingerprint);
+            if (messages.length > 0) socket.emit('allChatMessages', messages)
+            io.emit('userList', getAgrigatedUserList()); //добавил
+        }
+
     })
 
 
-    socket.on('userInfo', (info) => {
+    socket.on('userInfo', async (info) => {
         socket.user = info;
         io.emit('userList', getAgrigatedUserList());
+        const messages = await getAllChatMessages('userId', socket.user._id);
+        if (messages.length > 0) socket.emit('allChatMessages', messages)
     })
 
     socket.on('getUserListKick', (data) => {
@@ -116,9 +121,14 @@ io.on('connection', (socket) => {
 
     });
 
-    socket.on('message', (msg) => {
+    socket.on('message', async (msg) => {
         const newMsg = new Msg(msg);
-        newMsg.save();
+        await newMsg.save();
+        const field = newMsg.userId ? "userId" : "fingerPrint";
+        const value = newMsg.userId || newMsg.fingerPrint;
+        const messages = await getAllChatMessages(field, value);
+        console.log('field, value', messages);
+        socket.emit('allChatMessages', messages)
     });
 
     socket.on('disconnect', () => {
