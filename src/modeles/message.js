@@ -4,7 +4,8 @@ const Msg = mongoose.model('Msg', {
     timestamp: { type: String },
     fingerPrint: { type: String },
     userId: { type: String },
-    direction: { type: String }
+    direction: { type: String },
+    phone: { type: String },
 });
 
 
