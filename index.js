@@ -112,8 +112,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('getAllMsgsKick', async (data) => {//пинаем с фронта чтобы получить вссе сообщения
-        const field = data.userId ? "userId" : "fingerPrint";
-        const value = data.userId || data.fingerPrint;
+        const field = data.phone ? "phone" : "fingerPrint";
+        const value = data.phone || data.fingerPrint;
         const messages = await getAllChatMessages(field, value);
         if (messages.length > 0) socket.emit('allChatMessages', messages)
 
