@@ -122,8 +122,8 @@ io.on('connection', (socket) => {
     socket.on('message', async (msg) => {
         const newMsg = new Msg(msg);
         await newMsg.save();
-        const field = newMsg.userId ? "userId" : "fingerPrint";//отправка всех сообщений текущего пользователя включая последнее сохраненное
-        const value = newMsg.userId || newMsg.fingerPrint;
+        const field = newMsg.phone ? "phone" : "fingerPrint";//отправка всех сообщений текущего пользователя включая последнее сохраненное
+        const value = newMsg.phone || newMsg.fingerPrint;
         const messages = await getAllChatMessages(field, value);
         socket.emit('allChatMessages', messages)
     });
