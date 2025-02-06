@@ -8,7 +8,7 @@ const User = mongoose.model('User', {
     name: { type: String },
     surname: { type: String },
     token: { type: String },
-    fingerPrints: { type: Array }
+
 });
 
 

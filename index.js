@@ -122,19 +122,28 @@ io.on('connection', (socket) => {
 
     socket.on('getMsgsListKick', async () => {
         let msgs = await Msg.find({});
+        const arrPhone = [];
+        const arrFingerPrint = [];
         let list = [];
 
         msgs.forEach((item) => {
-            if (list.length == 0) list.push({ phone: item.phone, fingerPrint: item.fingerPrint });
-            list.forEach(elem => {
-                if (item.phone == elem.phone || item.fingerPrint == elem.fingerPrint) return
-                else {
-                    list.push({ phone: item.phone, fingerPrint: item.fingerPrint })
-                }
-            })
+            if (item.phone && !arrPhone.includes(item.phone)) {
+                arrPhone.push(item.phone);
+            } else if (item.fingerPrint && !arrFingerPrint.includes(item.fingerPrint)) {
+                arrFingerPrint.push(item.fingerPrint);
+            }
+        })
+
+        arrPhone.forEach((item) => {
+            list.push({ phone: item })
+        })
+
+        arrFingerPrint.forEach((item) => {
+            list.push({ fingerPrint: item })
         })
 
         if (list.length > 0) socket.emit('getMsgsList', list)
+
     })
 
     socket.on('message', async (msg) => {
