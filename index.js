@@ -119,6 +119,24 @@ io.on('connection', (socket) => {
 
     });
 
+
+    socket.on('getMsgsListKick', async () => {
+        let msgs = await Msg.find({});
+        let list = [];
+
+        msgs.forEach((item) => {
+            if (list.length == 0) list.push({ phone: item.phone, fingerPrint: item.fingerPrint });
+            list.forEach(elem => {
+                if (item.phone == elem.phone || item.fingerPrint == elem.fingerPrint) return
+                else {
+                    list.push({ phone: item.phone, fingerPrint: item.fingerPrint })
+                }
+            })
+        })
+
+        if (list.length > 0) socket.emit('getMsgsList', list)
+    })
+
     socket.on('message', async (msg) => {
         const newMsg = new Msg(msg);
         await newMsg.save();
