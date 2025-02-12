@@ -149,6 +149,15 @@ io.on('connection', (socket) => {
     socket.on('message', async (msg) => {
         const newMsg = new Msg(msg);
         await newMsg.save();
+
+        getAgrigatedUserList().forEach((user) => {
+            if (user.user.role == 'admin') {
+                user.connections.forEach((connection) => {
+                    if (connection) io.to(connection.id).emit('sendToAdmins', newMsg);
+                })
+            }
+        });
+
         const value = newMsg.phone || newMsg.fingerPrint;
         const currentUser = getAgrigatedUserList().find((user) => {
             return user.sign === value
