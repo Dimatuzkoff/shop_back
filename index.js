@@ -149,26 +149,19 @@ io.on('connection', (socket) => {
     socket.on('message', async (msg) => {
         const newMsg = new Msg(msg);
         await newMsg.save();
-        const field = newMsg.phone ? "phone" : "fingerPrint";//отправка всех сообщений текущего пользователя включая последнее сохраненное
+        // const field = newMsg.phone ? "phone" : "fingerPrint";//отправка всех сообщений текущего пользователя включая последнее сохраненное
         const value = newMsg.phone || newMsg.fingerPrint;
-        const messages = await getAllChatMessages(field, value);
-        socket.emit('allChatMessages', messages)
-        // const currentUser = getAgrigatedUserList().find((user) => user.sign === value);
+        // const messages = await getAllChatMessages(field, value);
+        // socket.emit('allChatMessages', messages)
         const currentUser = getAgrigatedUserList().find((user) => {
-            console.log("userSign: ", user.sign, );
             return user.sign === value
         });
 
-        console.log("current user: ", currentUser, "value: ", value, "field: ", field);
         if (currentUser) {
-            console.log("if run: ");
-            
             currentUser.connections.forEach((connection) => {
-                // const socket = clients.find((client) => client.id === connection.id);
                 io.to(connection.id).emit('message', newMsg);
                 console.log('message', newMsg);
-                console.log('connection', connection);
-                
+
                 // socket.emit('message', newMsg);
             });
         }
