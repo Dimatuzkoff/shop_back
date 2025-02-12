@@ -59,9 +59,9 @@ const getAgrigatedUserList = () => {
     const userList = getUserList(); // Получаем список всех соединений
 
     const aggregatedUsers = userList.reduce((acc, connection, index) => {
-        const userId = connection.user?._id;
+        const userPhone = connection.user?.phone;
         const fingerprint = connection.fingerprint;
-        const sign = userId || fingerprint;
+        const sign = userPhone || fingerprint;
 
         if (!acc[sign]) {
             acc[sign] = {
@@ -149,10 +149,7 @@ io.on('connection', (socket) => {
     socket.on('message', async (msg) => {
         const newMsg = new Msg(msg);
         await newMsg.save();
-        // const field = newMsg.phone ? "phone" : "fingerPrint";//отправка всех сообщений текущего пользователя включая последнее сохраненное
         const value = newMsg.phone || newMsg.fingerPrint;
-        // const messages = await getAllChatMessages(field, value);
-        // socket.emit('allChatMessages', messages)
         const currentUser = getAgrigatedUserList().find((user) => {
             return user.sign === value
         });
@@ -160,9 +157,6 @@ io.on('connection', (socket) => {
         if (currentUser) {
             currentUser.connections.forEach((connection) => {
                 io.to(connection.id).emit('message', newMsg);
-                console.log('message', newMsg);
-
-                // socket.emit('message', newMsg);
             });
         }
     });
