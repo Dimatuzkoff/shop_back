@@ -6,6 +6,7 @@ const Msg = mongoose.model('Msg', {
     userId: { type: String },
     direction: { type: String },
     phone: { type: String },
+    isRead: { type: Boolean, default: false },
 });
 
 

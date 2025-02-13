@@ -85,6 +85,48 @@ const getAgrigatedUserList = () => {
     return Object.values(aggregatedUsers);
 };
 
+async function getAgrigatedMsgsList() {
+    let msgs = await Msg.find({});
+    const arrPhone = [];
+    const arrFingerPrint = [];
+    let list = [];
+
+    msgs.forEach((item) => {
+        if (item.phone && !arrPhone.includes(item.phone)) {
+            arrPhone.push(item.phone);
+        } else if (item.fingerPrint && !arrFingerPrint.includes(item.fingerPrint)) {
+            arrFingerPrint.push(item.fingerPrint);
+        }
+    })
+
+    arrPhone.forEach((item) => {
+        let read = true;
+        msgs.forEach(msg => {
+            if (msg.phone) {
+                if (msg.phone == item && !msg.isRead && msg.direction == 'from user') {
+                    read = false;
+                }
+            }
+        })
+        list.push({ phone: item, isRead: read })
+    })
+
+    arrFingerPrint.forEach((item) => {
+        let read = true;
+        msgs.forEach(msg => {
+            if (msg.fingerPrint) {
+                if (msg.fingerPrint == item && !msg.isRead && msg.direction == 'from user') {
+                    read = false;
+                }
+            }
+        })
+        list.push({ fingerPrint: item, isRead: read })
+    })
+
+    return list
+
+}
+
 async function getAllChatMessages(field, value) {//функция вытягивает с базы все сообщения текущего пользователя по пинку 
     let filter = { [field]: value };
     let msgs = await Msg.find(filter);
@@ -119,29 +161,22 @@ io.on('connection', (socket) => {
 
     });
 
+    socket.on('readAllAdminMsgs', async (data) => {
+        const field = data.phone ? "phone" : "fingerPrint";
+        const value = data.phone || data.fingerPrint;
+        let messages = await getAllChatMessages(field, value);
+        for (const elem of messages) {
+            if (!elem.isRead && elem.direction == 'from user') {
+                await Msg.updateOne({ _id: elem._id }, { isRead: true });
+            }
+        }
+        const list = await getAgrigatedMsgsList()
+        if (list.length > 0) socket.emit('getMsgsList', list)
+    })
+
 
     socket.on('getMsgsListKick', async () => {
-        let msgs = await Msg.find({});
-        const arrPhone = [];
-        const arrFingerPrint = [];
-        let list = [];
-
-        msgs.forEach((item) => {
-            if (item.phone && !arrPhone.includes(item.phone)) {
-                arrPhone.push(item.phone);
-            } else if (item.fingerPrint && !arrFingerPrint.includes(item.fingerPrint)) {
-                arrFingerPrint.push(item.fingerPrint);
-            }
-        })
-
-        arrPhone.forEach((item) => {
-            list.push({ phone: item })
-        })
-
-        arrFingerPrint.forEach((item) => {
-            list.push({ fingerPrint: item })
-        })
-
+        const list = await getAgrigatedMsgsList()
         if (list.length > 0) socket.emit('getMsgsList', list)
 
     })
