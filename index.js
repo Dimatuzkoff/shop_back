@@ -174,6 +174,19 @@ io.on('connection', (socket) => {
         if (list.length > 0) socket.emit('getMsgsList', list)
     })
 
+    socket.on('readAllUserMsgs', async (data) => {
+        const field = data.phone ? "phone" : "fingerPrint";
+        const value = data.phone || data.fingerPrint;
+        let messages = await getAllChatMessages(field, value);
+        for (const elem of messages) {
+            if (!elem.isRead && elem.direction == 'to user') {
+                await Msg.updateOne({ _id: elem._id }, { isRead: true });
+            }
+        }
+        messages = await getAllChatMessages(field, value);
+        socket.emit('allChatMessages', messages)
+    })
+
 
     socket.on('getMsgsListKick', async () => {
         const list = await getAgrigatedMsgsList()
