@@ -9,6 +9,8 @@ import 'dotenv/config'
 
 const corsOptions = {
     origin: ["http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:5174",
         "https://shop-front-nine.vercel.app",
         "https://galka-travinskaya.github.io"], // Домен вашего Nuxt приложения
     credentials: true, // Разрешает передачу куки
