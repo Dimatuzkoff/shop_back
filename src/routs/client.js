@@ -15,6 +15,30 @@ router.post("/client", (req, res) => {
         });
 });
 
+router.put("/client", async (req, res) => {
+    try {
+        const id = req.body._id;
+        const client = await Client.findByIdAndUpdate(id, req.body, { new: true });
+        res.json(client);
+    } catch (error) {
+        console.error("Error updating client:", error);
+        res.status(500).send("Error updating client");
+    }
+});
+
+router.delete("/client/:id", (req, res) => {
+    const clientId = req.params.id;
+    Client.findByIdAndDelete(clientId)
+        .then(() => {
+            console.log("Client deleted successfully");
+            res.send("Client deleted successfully");
+        })
+        .catch((error) => {
+            console.error("Error deleting client:", error);
+            res.status(500).send("Error deleting client");
+        });
+});
+
 router.get("/clients", async (req, res) => {
     const data = await Client.find({});
     res.json(data);
