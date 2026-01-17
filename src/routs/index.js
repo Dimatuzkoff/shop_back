@@ -4,6 +4,7 @@ import user from "./user.js";
 import cors from "cors";
 import auth from "./auth.js";
 import client from "./client.js";
+import post from "./post.js";
 import jwt from 'jsonwebtoken';
 import 'dotenv/config'
 
@@ -67,6 +68,7 @@ export default function routes(app) {
     app.use("/api", order);
     app.use("/api", user);
     app.use("/api", client);
+    app.use("/api", post);
 
 }
 
