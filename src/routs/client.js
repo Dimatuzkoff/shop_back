@@ -8,7 +8,7 @@ router.post("/client", (req, res) => {
     client
         .save()
         .then(() => {
-            res.send("client saved successfully");
+            res.json(client);
         })
         .catch((error) => {
             res.status(500).send("Error saving client");
@@ -22,7 +22,7 @@ router.put("/client", async (req, res) => {
         res.json(client);
     } catch (error) {
         console.error("Error updating client:", error);
-        res.status(500).send("Error updating client");
+        res.status(500).send({ message: "Error updating client" });
     }
 });
 
@@ -31,7 +31,7 @@ router.delete("/client/:id", (req, res) => {
     Client.findByIdAndDelete(clientId)
         .then(() => {
             console.log("Client deleted successfully");
-            res.send("Client deleted successfully");
+            res.send({ message: "Client deleted successfully" });
         })
         .catch((error) => {
             console.error("Error deleting client:", error);
@@ -42,6 +42,18 @@ router.delete("/client/:id", (req, res) => {
 router.get("/clients", async (req, res) => {
     const data = await Client.find({});
     res.json(data);
+});
+
+router.get("/client/:id", async (req, res) => {
+    try {
+        const data = await Client.findById(req.params.id);
+        if (!data) {
+            return res.status(404).json({ message: "Client not found" });
+        }
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
 });
 
 export default router;
