@@ -74,7 +74,7 @@ router.post("/login", async (req, res) => {
             if (!isPasswordValid) {
                 return res.json({ message: 'Incorrect phone or password.', ok: false });
             } else {
-                const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: '1m' });
+                const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: '3m' });
                 user.hashed_password = undefined;
                 user.__v = undefined;
                 user.salt = undefined;
